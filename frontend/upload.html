@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Analyze Dataset - DataMarket</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                linear-gradient(
+                    135deg,
+                    #f8faff 0%,
+                    #eef2ff 100%
+                );
+            color: #172033;
+        }
+
+        .page {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .brand h1 {
+            font-size: 30px;
+            margin-bottom: 6px;
+        }
+
+        .brand p {
+            color: #667085;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            background: white;
+            color: #344054;
+            padding: 11px 18px;
+            border-radius: 9px;
+            border: 1px solid #d0d5dd;
+            font-weight: 600;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e4e7ec;
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow:
+                0 8px 30px
+                rgba(16, 24, 40, 0.06);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 21px;
+            margin-bottom: 7px;
+        }
+
+        .card-subtitle {
+            color: #667085;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .required {
+            color: #ef4444;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid #d0d5dd;
+            border-radius: 10px;
+            padding: 13px 14px;
+            font-size: 15px;
+            outline: none;
+            background: white;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #635bff;
+            box-shadow:
+                0 0 0 3px
+                rgba(99, 91, 255, 0.10);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .drop-zone {
+            border: 2px dashed #c7d2fe;
+            background: #f8faff;
+            border-radius: 15px;
+            padding: 42px 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .drop-zone:hover {
+            border-color: #635bff;
+            background: #f5f3ff;
+        }
+
+        .upload-icon {
+            width: 58px;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            border-radius: 15px;
+            background: #eef2ff;
+            color: #4f46e5;
+            font-size: 27px;
+        }
+
+        .drop-title {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 7px;
+        }
+
+        .drop-text {
+            color: #667085;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .formats {
+            color: #98a2b3;
+            font-size: 12px;
+        }
+
+        .selected-file {
+            display: none;
+            margin-top: 12px;
+            background: #ecfdf3;
+            border: 1px solid #a7f3d0;
+            color: #047857;
+            padding: 12px 14px;
+            border-radius: 9px;
+            font-weight: 600;
+        }
+
+        .ai-box {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+            background: linear-gradient(
+                135deg,
+                #eef2ff,
+                #f5f3ff
+            );
+            border: 1px solid #c7d2fe;
+            border-radius: 13px;
+            padding: 18px;
+            margin-top: 10px;
+        }
+
+        .ai-icon {
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #635bff;
+            color: white;
+            border-radius: 10px;
+        }
+
+        .ai-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .ai-box p {
+            color: #667085;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 28px;
+        }
+
+        .button {
+            flex: 1;
+            min-height: 50px;
+            border: none;
+            border-radius: 10px;
+            padding: 13px 20px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 15px;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .cancel-btn {
+            background: #f2f4f7;
+            color: #344054;
+        }
+
+        .analyze-btn {
+            background: #635bff;
+            color: white;
+            box-shadow:
+                0 6px 15px
+                rgba(99, 91, 255, 0.25);
+        }
+
+        .analyze-btn:hover {
+            background: #5148e5;
+        }
+
+        .analyze-btn:disabled {
+            opacity: .65;
+            cursor: not-allowed;
+        }
+
+        .error-box {
+            display: none;
+            margin-top: 18px;
+            background: #fef3f2;
+            border: 1px solid #fecdca;
+            color: #b42318;
+            border-radius: 10px;
+            padding: 14px;
+            line-height: 1.5;
+        }
+
+        .loading {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+            color: #4f46e5;
+            font-weight: 700;
+        }
+
+        @media(max-width: 700px) {
+
+            .page {
+                padding: 20px 14px;
+            }
+
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .button-row {
+                flex-direction: column;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+<div class="page">
+
+    <div class="topbar">
+
+        <div class="brand">
+
+            <h1>
+                Analyze Dataset
+            </h1>
+
+            <p>
+                Let AI clean, analyze and price your dataset.
+            </p>
+
+        </div>
+
+        <a
+            href="seller.html"
+            class="back-btn"
+        >
+            ← Dashboard
+        </a>
+
+    </div>
+
+
+    <div class="card">
+
+        <h2>
+            Dataset Information
+        </h2>
+
+        <p class="card-subtitle">
+            Upload your original dataset for AI analysis.
+            Publishing requires your approval.
+        </p>
+
+
+        <!-- FILE -->
+
+        <div class="form-group">
+
+            <label>
+                Dataset File
+                <span class="required">*</span>
+            </label>
+
+            <div
+                class="drop-zone"
+                id="dropZone"
+            >
+
+                <input
+                    type="file"
+                    id="datasetFile"
+                    accept=".csv,.xlsx,.xls,.json"
+                    hidden
+                >
+
+                <div class="upload-icon">
+                    ↑
+                </div>
+
+                <div class="drop-title">
+                    Choose your dataset
+                </div>
+
+                <div class="drop-text">
+                    Click here to select your file
+                </div>
+
+                <div class="formats">
+                    CSV • XLSX • XLS • JSON
+                </div>
+
+            </div>
+
+            <div
+                id="selectedFile"
+                class="selected-file"
+            >
+            </div>
+
+        </div>
+
+
+        <!-- NAME -->
+
+        <div class="form-group">
+
+            <label>
+                Dataset Name
+            </label>
+
+            <input
+                type="text"
+                id="datasetName"
+                placeholder="Example: Customer Sales Dataset"
+            >
+
+        </div>
+
+
+        <!-- CATEGORY -->
+
+        <div class="form-group">
+
+            <label>
+                Category
+            </label>
+
+            <select id="category">
+
+                <option value="General">
+                    General
+                </option>
+
+                <option value="Business">
+                    Business
+                </option>
+
+                <option value="Finance">
+                    Finance
+                </option>
+
+                <option value="Marketing">
+                    Marketing
+                </option>
+
+                <option value="Healthcare">
+                    Healthcare
+                </option>
+
+                <option value="Technology">
+                    Technology
+                </option>
+
+                <option value="Education">
+                    Education
+                </option>
+
+                <option value="Ecommerce">
+                    Ecommerce
+                </option>
+
+                <option value="Real Estate">
+                    Real Estate
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- DESCRIPTION -->
+
+        <div class="form-group">
+
+            <label>
+                Description
+            </label>
+
+            <textarea
+                id="description"
+                placeholder="Describe what this dataset contains..."
+            ></textarea>
+
+        </div>
+
+
+        <!-- AI -->
+
+        <div class="ai-box">
+
+            <div class="ai-icon">
+                AI
+            </div>
+
+            <div>
+
+                <strong>
+                    AI will calculate the price
+                </strong>
+
+                <p>
+                    You don't need to enter a price.
+                    AI will analyze the dataset quality,
+                    size, columns and category and generate
+                    a recommended marketplace price.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- BUTTONS -->
+
+        <div class="button-row">
+
+            <a
+                href="seller.html"
+                class="button cancel-btn"
+            >
+                Cancel
+            </a>
+
+            <button
+                type="button"
+                id="analyzeButton"
+                class="button analyze-btn"
+            >
+                Analyze Dataset with AI
+            </button>
+
+        </div>
+
+
+        <div
+            id="loading"
+            class="loading"
+        >
+            🤖 AI is analyzing and cleaning your dataset...
+        </div>
+
+
+        <div
+            id="errorBox"
+            class="error-box"
+        ></div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+const API =
+    "http://127.0.0.1:8000";
+
+
+const fileInput =
+    document.getElementById(
+        "datasetFile"
+    );
+
+
+const dropZone =
+    document.getElementById(
+        "dropZone"
+    );
+
+
+const selectedFile =
+    document.getElementById(
+        "selectedFile"
+    );
+
+
+const analyzeButton =
+    document.getElementById(
+        "analyzeButton"
+    );
+
+
+const loading =
+    document.getElementById(
+        "loading"
+    );
+
+
+const errorBox =
+    document.getElementById(
+        "errorBox"
+    );
+
+
+/* =====================================================
+   FILE SELECT
+===================================================== */
+
+dropZone.addEventListener(
+    "click",
+    function() {
+
+        fileInput.click();
+
+    }
+);
+
+
+fileInput.addEventListener(
+    "change",
+    function() {
+
+        showSelectedFile();
+
+    }
+);
+
+
+function showSelectedFile() {
+
+    if (
+        !fileInput.files ||
+        !fileInput.files.length
+    ) {
+
+        selectedFile.style.display =
+            "none";
+
+        return;
+    }
+
+
+    const file =
+        fileInput.files[0];
+
+
+    selectedFile.textContent =
+        "✓ Selected: " + file.name;
+
+
+    selectedFile.style.display =
+        "block";
+}
+
+
+/* =====================================================
+   ANALYZE
+===================================================== */
+
+analyzeButton.addEventListener(
+    "click",
+    analyzeDataset
+);
+
+
+async function analyzeDataset() {
+
+    hideError();
+
+
+    /* File check */
+
+    if (
+        !fileInput.files ||
+        !fileInput.files.length
+    ) {
+
+        showError(
+            "Please select a CSV, Excel or JSON dataset first."
+        );
+
+        return;
+    }
+
+
+    const file =
+        fileInput.files[0];
+
+
+    /* FormData */
+
+    const formData =
+        new FormData();
+
+
+    formData.append(
+        "file",
+        file
+    );
+
+
+    formData.append(
+        "dataset_name",
+        document.getElementById(
+            "datasetName"
+        ).value.trim()
+    );
+
+
+    formData.append(
+        "category",
+        document.getElementById(
+            "category"
+        ).value
+    );
+
+
+    formData.append(
+        "description",
+        document.getElementById(
+            "description"
+        ).value.trim()
+    );
+
+
+    /* Loading */
+
+    analyzeButton.disabled =
+        true;
+
+    analyzeButton.textContent =
+        "Analyzing...";
+
+    loading.style.display =
+        "block";
+
+
+    try {
+
+        /*
+         IMPORTANT:
+         This endpoint ONLY analyzes.
+         It does NOT publish.
+        */
+
+        const response =
+            await fetch(
+                `${API}/analyze-dataset`,
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+
+        const responseText =
+            await response.text();
+
+
+        let data;
+
+
+        try {
+
+            data =
+                JSON.parse(
+                    responseText
+                );
+
+        } catch {
+
+            throw new Error(
+                "Backend returned an invalid response. " +
+                "Check that FastAPI is running."
+            );
+
+        }
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                "Dataset analysis failed."
+            );
+
+        }
+
+
+        if (
+            !data.success ||
+            !data.dataset
+        ) {
+
+            throw new Error(
+                "Analysis result was not returned by the backend."
+            );
+
+        }
+
+
+        /*
+         Save analysis only in session.
+         Seller must approve on analysis.html.
+        */
+
+        sessionStorage.setItem(
+            "analysisResult",
+            JSON.stringify(data)
+        );
+
+
+        /* Go to analysis page */
+
+        window.location.href =
+            "analysis.html";
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "ANALYZE ERROR:",
+            error
+        );
+
+        showError(
+            error.message
+        );
+
+    }
+
+    finally {
+
+        analyzeButton.disabled =
+            false;
+
+        analyzeButton.textContent =
+            "Analyze Dataset with AI";
+
+        loading.style.display =
+            "none";
+    }
+
+}
+
+
+/* =====================================================
+   ERROR
+===================================================== */
+
+function showError(message) {
+
+    errorBox.textContent =
+        message;
+
+    errorBox.style.display =
+        "block";
+}
+
+
+function hideError() {
+
+    errorBox.textContent =
+        "";
+
+    errorBox.style.display =
+        "none";
+}
+
+</script>
+
+</body>
+
+</html>

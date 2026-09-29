@@ -1,0 +1,16 @@
+Name,Age,City,Salary,Department,Active
+Rahul,22.0,Nagpur,25000.0,IT,Yes
+Priya,,Mumbai,30000.0,HR,Yes
+Amit,25.0,,35000.0,IT,No
+Rahul,22.0,Nagpur,25000.0,IT,Yes
+Sneha,,,40000.0,Finance,Yes
+Vikram,28.0,Pune,,IT,No
+Neha,24.0,Nagpur,32000.0,,Yes
+Arjun,30.0,Mumbai,45000.0,Sales,
+Pooja,27.0,Pune,38000.0,HR,Yes
+Karan,26.0,Nagpur,36000.0,IT,No
+Meera,,Mumbai,41000.0,Finance,Yes
+Soham,29.0,,39000.0,Sales,No
+Rahul,22.0,Nagpur,25000.0,IT,Yes
+Anjali,23.0,Pune,28000.0,HR,Yes
+Rohan,,Nagpur,,IT,No

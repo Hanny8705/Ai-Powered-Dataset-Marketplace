@@ -1,0 +1,3029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>DataMarket - Buyer Dashboard</title>
+
+<style>
+
+/* =========================================================
+   RESET
+========================================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Inter, Arial, Helvetica, sans-serif;
+    background: #f5f7fb;
+    color: #172033;
+}
+
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+    height: 100vh;
+    background: #111827;
+    color: white;
+    padding: 28px 18px;
+    z-index: 100;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: 800;
+    padding: 0 12px;
+    margin-bottom: 42px;
+}
+
+.logo span {
+    color: #8b5cf6;
+}
+
+.nav-title {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: #7f899b;
+    font-weight: 800;
+    padding: 0 12px;
+    margin-bottom: 10px;
+}
+
+.nav-item {
+    display: block;
+    text-decoration: none;
+    color: #c8cfda;
+    padding: 13px 14px;
+    margin-bottom: 5px;
+    border-radius: 9px;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.nav-item:hover {
+    background: #1f2937;
+    color: white;
+}
+
+.nav-item.active {
+    background: #7c3aed;
+    color: white;
+}
+
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.main {
+    margin-left: 250px;
+    min-height: 100vh;
+}
+
+
+/* =========================================================
+   TOPBAR
+========================================================= */
+
+.topbar {
+    height: 76px;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0 35px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.topbar-title h1 {
+    font-size: 21px;
+    font-weight: 800;
+}
+
+.topbar-title p {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 3px;
+}
+
+.wallet-area {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wallet-status {
+    display: none;
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.wallet-button {
+    border: none;
+    background: #7c3aed;
+    color: white;
+    padding: 11px 17px;
+    border-radius: 9px;
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 13px;
+}
+
+.wallet-button:hover {
+    background: #6d28d9;
+}
+
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.content {
+    padding: 32px 35px;
+}
+
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero {
+    background: linear-gradient(
+        135deg,
+        #5b21b6,
+        #7c3aed,
+        #8b5cf6
+    );
+
+    color: white;
+    padding: 30px;
+    border-radius: 18px;
+    margin-bottom: 28px;
+}
+
+.hero h2 {
+    font-size: 27px;
+    margin-bottom: 8px;
+}
+
+.hero p {
+    color: #ede9fe;
+    max-width: 680px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   STATS
+========================================================= */
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 21px;
+}
+
+.stat-label {
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 7px;
+}
+
+.stat-value {
+    font-size: 25px;
+    font-weight: 900;
+    color: #111827;
+}
+
+
+/* =========================================================
+   SECTION HEADER
+========================================================= */
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 17px;
+}
+
+.section-header h2 {
+    font-size: 20px;
+}
+
+.refresh-button {
+    background: white;
+    border: 1px solid #d9dde5;
+    padding: 9px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.refresh-button:hover {
+    border-color: #7c3aed;
+    color: #7c3aed;
+}
+
+
+/* =========================================================
+   SEARCH + FILTERS
+========================================================= */
+
+.marketplace-tools {
+    display: grid;
+    grid-template-columns: 1fr 190px 190px;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.search-box {
+    background: white;
+    border: 1px solid #dfe3ea;
+    border-radius: 10px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 14px;
+
+    transition: 0.2s;
+}
+
+.search-box:focus-within {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(124,58,237,0.08);
+}
+
+.search-icon {
+    font-size: 17px;
+    margin-right: 9px;
+}
+
+.search-input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 13px 0;
+    font-size: 14px;
+    color: #111827;
+}
+
+.search-input::placeholder {
+    color: #9ca3af;
+}
+
+.filter-select {
+    width: 100%;
+    border: 1px solid #dfe3ea;
+    background: white;
+    border-radius: 10px;
+    padding: 0 12px;
+    outline: none;
+    font-size: 13px;
+    color: #374151;
+    cursor: pointer;
+}
+
+.filter-select:focus {
+    border-color: #8b5cf6;
+}
+
+
+/* =========================================================
+   RESULT INFO
+========================================================= */
+
+.result-info {
+    color: #6b7280;
+    font-size: 12px;
+    margin-bottom: 15px;
+}
+
+
+/* =========================================================
+   DATASET GRID
+========================================================= */
+
+.datasets {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+
+/* =========================================================
+   DATASET CARD
+========================================================= */
+
+.dataset-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 15px;
+    padding: 21px;
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s,
+        border-color 0.2s;
+}
+
+.dataset-card:hover {
+    transform: translateY(-3px);
+    border-color: #ddd6fe;
+    box-shadow: 0 10px 30px rgba(15,23,42,0.08);
+}
+
+.dataset-icon {
+    width: 45px;
+    height: 45px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #ede9fe;
+    color: #6d28d9;
+
+    border-radius: 10px;
+
+    font-size: 11px;
+    font-weight: 900;
+
+    margin-bottom: 15px;
+}
+
+.dataset-name {
+    font-size: 17px;
+    font-weight: 850;
+    color: #111827;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    margin-bottom: 7px;
+}
+
+.dataset-description {
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.55;
+
+    height: 39px;
+    overflow: hidden;
+
+    margin-bottom: 15px;
+}
+
+
+/* =========================================================
+   TAGS
+========================================================= */
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 17px;
+}
+
+.tag {
+    background: #f3f4f6;
+    color: #4b5563;
+
+    padding: 5px 8px;
+
+    border-radius: 6px;
+
+    font-size: 10px;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   QUALITY
+========================================================= */
+
+.quality {
+    margin-bottom: 18px;
+}
+
+.quality-header {
+    display: flex;
+    justify-content: space-between;
+
+    font-size: 11px;
+
+    margin-bottom: 6px;
+}
+
+.quality-header span {
+    color: #6b7280;
+}
+
+.quality-header strong {
+    color: #059669;
+}
+
+.quality-bar {
+    width: 100%;
+    height: 6px;
+
+    background: #e5e7eb;
+
+    border-radius: 10px;
+
+    overflow: hidden;
+}
+
+.quality-fill {
+    height: 100%;
+    background: #10b981;
+    border-radius: 10px;
+}
+
+
+/* =========================================================
+   PRICE
+========================================================= */
+
+.price-box {
+    background: #faf8ff;
+    border: 1px solid #e9d5ff;
+
+    border-radius: 10px;
+
+    padding: 13px;
+
+    margin-bottom: 13px;
+}
+
+.price-label {
+    color: #6b7280;
+    font-size: 10px;
+    font-weight: 700;
+    margin-bottom: 3px;
+}
+
+.price {
+    color: #6d28d9;
+    font-size: 23px;
+    font-weight: 900;
+}
+
+.price-note {
+    color: #9ca3af;
+    font-size: 10px;
+    margin-top: 2px;
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+.buy-button {
+    width: 100%;
+
+    border: none;
+    background: #111827;
+    color: white;
+
+    padding: 12px;
+
+    border-radius: 9px;
+
+    cursor: pointer;
+
+    font-size: 12px;
+    font-weight: 800;
+
+    transition: 0.2s;
+}
+
+.buy-button:hover {
+    background: #7c3aed;
+}
+
+.details-button {
+    width: 100%;
+
+    margin-top: 8px;
+
+    border: 1px solid #dfe3ea;
+    background: white;
+    color: #374151;
+
+    padding: 10px;
+
+    border-radius: 9px;
+
+    cursor: pointer;
+
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.details-button:hover {
+    border-color: #8b5cf6;
+    color: #7c3aed;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.empty {
+    grid-column: 1 / -1;
+
+    background: white;
+
+    border: 1px dashed #d1d5db;
+
+    border-radius: 15px;
+
+    padding: 65px 20px;
+
+    text-align: center;
+}
+
+.empty-icon {
+    font-size: 35px;
+    margin-bottom: 12px;
+}
+
+.empty h3 {
+    color: #374151;
+    font-size: 17px;
+    margin-bottom: 7px;
+}
+
+.empty p {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   PURCHASES
+========================================================= */
+
+.purchases-section {
+    margin-top: 45px;
+    padding-bottom: 40px;
+}
+
+.purchase-box {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 22px;
+}
+
+.purchase-empty {
+    text-align: center;
+    padding: 35px;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   MODAL OVERLAY
+========================================================= */
+
+.modal-overlay {
+    display: none;
+
+    position: fixed;
+    inset: 0;
+
+    background: rgba(15,23,42,0.65);
+
+    z-index: 1000;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.modal {
+    width: 100%;
+    max-width: 500px;
+
+    background: white;
+
+    border-radius: 18px;
+
+    padding: 27px;
+
+    box-shadow: 0 25px 70px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    font-size: 20px;
+}
+
+.close-button {
+    width: 32px;
+    height: 32px;
+
+    border: none;
+    background: #f3f4f6;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    font-size: 17px;
+}
+
+.modal-subtitle {
+    color: #6b7280;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+
+/* =========================================================
+   DETAILS
+========================================================= */
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+
+    margin-bottom: 18px;
+}
+
+.detail-item {
+    background: #f9fafb;
+    border-radius: 9px;
+    padding: 12px;
+}
+
+.detail-item span {
+    display: block;
+    color: #9ca3af;
+    font-size: 10px;
+    margin-bottom: 4px;
+}
+
+.detail-item strong {
+    font-size: 12px;
+    color: #111827;
+}
+
+.ai-analysis {
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+
+    border-radius: 10px;
+
+    padding: 14px;
+
+    margin-bottom: 18px;
+}
+
+.ai-analysis-title {
+    color: #6d28d9;
+    font-size: 11px;
+    font-weight: 900;
+
+    margin-bottom: 6px;
+}
+
+.ai-analysis-text {
+    color: #4b5563;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   PAYMENT MODAL
+========================================================= */
+
+.payment-summary {
+    background: #faf8ff;
+    border: 1px solid #e9d5ff;
+
+    border-radius: 11px;
+
+    padding: 15px;
+
+    margin-bottom: 17px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+
+    padding: 7px 0;
+
+    font-size: 12px;
+}
+
+.summary-row span {
+    color: #6b7280;
+}
+
+.summary-row strong {
+    color: #111827;
+}
+
+.ethereum-info {
+    background: #f3f4f6;
+
+    border-radius: 10px;
+
+    padding: 14px;
+
+    font-size: 11px;
+
+    line-height: 1.6;
+
+    margin-bottom: 20px;
+}
+
+.ethereum-info strong {
+    display: block;
+    color: #111827;
+    margin-bottom: 4px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.cancel-button,
+.confirm-button {
+    flex: 1;
+
+    padding: 12px;
+
+    border-radius: 9px;
+
+    cursor: pointer;
+
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.cancel-button {
+    background: white;
+    border: 1px solid #d1d5db;
+}
+
+.confirm-button {
+    background: #7c3aed;
+    color: white;
+    border: none;
+}
+
+.confirm-button:hover {
+    background: #6d28d9;
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+.toast {
+    display: none;
+
+    position: fixed;
+
+    right: 25px;
+    bottom: 25px;
+
+    max-width: 360px;
+
+    background: #111827;
+    color: white;
+
+    padding: 14px 17px;
+
+    border-radius: 10px;
+
+    font-size: 12px;
+
+    z-index: 2000;
+
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1150px) {
+
+    .datasets {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+@media (max-width: 900px) {
+
+    .marketplace-tools {
+        grid-template-columns: 1fr;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+@media (max-width: 750px) {
+
+    .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+    }
+
+    .main {
+        margin-left: 0;
+    }
+
+    .topbar {
+        height: auto;
+        padding: 17px 20px;
+
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .content {
+        padding: 22px 18px;
+    }
+
+    .datasets {
+        grid-template-columns: 1fr;
+    }
+
+    .hero h2 {
+        font-size: 22px;
+    }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     SIDEBAR
+===================================================== -->
+
+<aside class="sidebar">
+
+    <div class="logo">
+        Data<span>Market</span>
+    </div>
+
+    <div class="nav-title">
+        BUYER
+    </div>
+
+    <a
+        href="#marketplace"
+        class="nav-item active"
+        onclick="showMarketplace()">
+
+        🏪 Marketplace
+
+    </a>
+
+    <a
+        href="#purchases"
+        class="nav-item"
+        onclick="scrollToPurchases()">
+
+        📦 My Purchases
+
+    </a>
+
+    <a
+        href="index.html"
+        class="nav-item">
+
+        🏠 Home
+
+    </a>
+
+</aside>
+
+
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main class="main">
+
+
+<!-- =====================================================
+     TOPBAR
+===================================================== -->
+
+<header class="topbar">
+
+    <div class="topbar-title">
+
+        <h1>
+            Buyer Dashboard
+        </h1>
+
+        <p>
+            Discover and purchase verified datasets
+        </p>
+
+    </div>
+
+
+    <div class="wallet-area">
+
+        <span
+            id="walletStatus"
+            class="wallet-status">
+
+            ✓ Wallet Connected
+
+        </span>
+
+        <button
+            id="walletButton"
+            class="wallet-button"
+            onclick="connectWallet()">
+
+            Connect Wallet
+
+        </button>
+
+    </div>
+
+</header>
+
+
+
+<!-- =====================================================
+     CONTENT
+===================================================== -->
+
+<section class="content">
+
+
+<!-- =====================================================
+     HERO
+===================================================== -->
+
+<div class="hero">
+
+    <h2>
+        Discover Verified Datasets
+    </h2>
+
+    <p>
+        Search AI-cleaned datasets, compare quality and
+        pricing, and purchase datasets securely using
+        Ethereum.
+    </p>
+
+</div>
+
+
+
+<!-- =====================================================
+     STATS
+===================================================== -->
+
+<div class="stats">
+
+    <div class="stat-card">
+
+        <div class="stat-label">
+            Available Datasets
+        </div>
+
+        <div
+            id="datasetCount"
+            class="stat-value">
+
+            0
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-label">
+            Search Results
+        </div>
+
+        <div
+            id="resultCount"
+            class="stat-value">
+
+            0
+
+        </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+        <div class="stat-label">
+            Payment Method
+        </div>
+
+        <div
+            class="stat-value"
+            style="font-size:20px;">
+
+            Ethereum
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     MARKETPLACE
+===================================================== -->
+
+<div id="marketplace">
+
+    <div class="section-header">
+
+        <h2>
+            Marketplace
+        </h2>
+
+        <button
+            class="refresh-button"
+            onclick="loadDatasets()">
+
+            ↻ Refresh
+
+        </button>
+
+    </div>
+
+
+
+    <!-- SEARCH -->
+
+    <div class="marketplace-tools">
+
+
+        <div class="search-box">
+
+            <span class="search-icon">
+                🔍
+            </span>
+
+            <input
+                id="datasetSearch"
+                class="search-input"
+                type="text"
+                placeholder="Search datasets by name..."
+                autocomplete="off"
+            >
+
+        </div>
+
+
+        <select
+            id="categoryFilter"
+            class="filter-select">
+
+            <option value="all">
+                All Categories
+            </option>
+
+        </select>
+
+
+        <select
+            id="sortFilter"
+            class="filter-select">
+
+            <option value="newest">
+                Newest
+            </option>
+
+            <option value="price-low">
+                Price: Low to High
+            </option>
+
+            <option value="price-high">
+                Price: High to Low
+            </option>
+
+            <option value="quality">
+                Quality: High to Low
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div
+        id="resultInfo"
+        class="result-info">
+
+        Loading datasets...
+
+    </div>
+
+
+    <div
+        id="datasets"
+        class="datasets">
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     MY PURCHASES
+===================================================== -->
+
+<div
+    id="purchases"
+    class="purchases-section">
+
+    <div class="section-header">
+
+        <h2>
+            My Purchases
+        </h2>
+
+    </div>
+
+
+    <div class="purchase-box">
+
+        <div
+            id="purchaseList"
+            class="purchase-empty">
+
+            No purchases yet.
+
+            <br>
+
+            Your purchased datasets will appear here
+            after Ethereum payment is integrated.
+
+        </div>
+
+    </div>
+
+</div>
+
+
+</section>
+
+</main>
+
+
+
+<!-- =====================================================
+     DATASET DETAILS MODAL
+===================================================== -->
+
+<div
+    id="detailsModal"
+    class="modal-overlay"
+    onclick="closeModalOnOverlay(event)">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <div>
+
+                <h2 id="detailsName">
+                    Dataset
+                </h2>
+
+                <p
+                    id="detailsSubtitle"
+                    class="modal-subtitle">
+
+                    Dataset information
+
+                </p>
+
+            </div>
+
+            <button
+                class="close-button"
+                onclick="closeDetailsModal()">
+
+                ×
+
+            </button>
+
+        </div>
+
+
+        <div
+            id="detailsGrid"
+            class="detail-grid">
+
+        </div>
+
+
+        <div class="ai-analysis">
+
+            <div class="ai-analysis-title">
+
+                🤖 AI ANALYSIS
+
+            </div>
+
+            <div
+                id="detailsAnalysis"
+                class="ai-analysis-text">
+
+                AI analysis unavailable.
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button
+                class="cancel-button"
+                onclick="closeDetailsModal()">
+
+                Close
+
+            </button>
+
+            <button
+                class="confirm-button"
+                onclick="buySelectedFromDetails()">
+
+                Buy with Ethereum
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     PAYMENT MODAL
+===================================================== -->
+
+<div
+    id="paymentModal"
+    class="modal-overlay"
+    onclick="closePaymentOverlay(event)">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <div>
+
+                <h2>
+                    Buy Dataset
+                </h2>
+
+                <p class="modal-subtitle">
+                    Review your purchase before payment.
+                </p>
+
+            </div>
+
+            <button
+                class="close-button"
+                onclick="closePaymentModal()">
+
+                ×
+
+            </button>
+
+        </div>
+
+
+        <div class="payment-summary">
+
+            <div class="summary-row">
+
+                <span>
+                    Dataset
+                </span>
+
+                <strong
+                    id="paymentDataset">
+
+                    -
+
+                </strong>
+
+            </div>
+
+
+            <div class="summary-row">
+
+                <span>
+                    Price
+                </span>
+
+                <strong
+                    id="paymentPrice">
+
+                    -
+
+                </strong>
+
+            </div>
+
+
+            <div class="summary-row">
+
+                <span>
+                    Payment
+                </span>
+
+                <strong>
+                    Ethereum
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="ethereum-info">
+
+            <strong>
+                🔐 Ethereum Payment Protection
+            </strong>
+
+            Your wallet will approve the transaction.
+            Your private key or seed phrase is never
+            requested by DataMarket.
+
+            <br><br>
+
+            <strong>
+                Current status
+            </strong>
+
+            Smart contract payment will be connected
+            in the next step.
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button
+                class="cancel-button"
+                onclick="closePaymentModal()">
+
+                Cancel
+
+            </button>
+
+
+            <button
+                class="confirm-button"
+                onclick="confirmPurchase()">
+
+                Buy with Ethereum
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     TOAST
+===================================================== -->
+
+<div
+    id="toast"
+    class="toast">
+
+</div>
+
+
+
+<script>
+
+
+/* =========================================================
+   CONFIG
+========================================================= */
+
+const API =
+    "http://127.0.0.1:8000";
+
+
+/* =========================================================
+   STATE
+========================================================= */
+
+let datasets = [];
+
+let filteredDatasets = [];
+
+let selectedDataset = null;
+
+let walletAddress = null;
+
+
+/* =========================================================
+   DOM READY
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        document
+            .getElementById("datasetSearch")
+            .addEventListener(
+                "input",
+                filterDatasets
+            );
+
+
+        document
+            .getElementById("categoryFilter")
+            .addEventListener(
+                "change",
+                filterDatasets
+            );
+
+
+        document
+            .getElementById("sortFilter")
+            .addEventListener(
+                "change",
+                filterDatasets
+            );
+
+
+        loadDatasets();
+
+        checkExistingWallet();
+
+    }
+);
+
+
+/* =========================================================
+   LOAD DATASETS
+========================================================= */
+
+async function loadDatasets() {
+
+    const container =
+        document.getElementById(
+            "datasets"
+        );
+
+    container.innerHTML = `
+        <div class="empty">
+
+            <div class="empty-icon">
+                ⏳
+            </div>
+
+            <h3>
+                Loading marketplace
+            </h3>
+
+            <p>
+                Fetching published datasets...
+            </p>
+
+        </div>
+    `;
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API}/datasets`
+            );
+
+
+        const responseText =
+            await response.text();
+
+
+        let data;
+
+        try {
+
+            data =
+                JSON.parse(
+                    responseText
+                );
+
+        } catch {
+
+            throw new Error(
+                "Backend returned invalid data."
+            );
+
+        }
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                "Unable to load datasets."
+            );
+
+        }
+
+
+        datasets =
+            Array.isArray(data.datasets)
+                ? data.datasets
+                : [];
+
+
+        document
+            .getElementById(
+                "datasetCount"
+            )
+            .textContent =
+            datasets.length;
+
+
+        populateCategories();
+
+
+        filteredDatasets =
+            [...datasets];
+
+
+        filterDatasets();
+
+
+    } catch (error) {
+
+        console.error(
+            "LOAD DATASETS ERROR:",
+            error
+        );
+
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                <div class="empty-icon">
+                    ⚠️
+                </div>
+
+                <h3>
+                    Unable to load marketplace
+                </h3>
+
+                <p>
+                    ${escapeHtml(
+                        error.message
+                    )}
+                </p>
+
+            </div>
+
+        `;
+
+
+        document
+            .getElementById(
+                "resultInfo"
+            )
+            .textContent =
+            "Marketplace unavailable.";
+
+    }
+
+}
+
+
+/* =========================================================
+   POPULATE CATEGORY FILTER
+========================================================= */
+
+function populateCategories() {
+
+    const select =
+        document.getElementById(
+            "categoryFilter"
+        );
+
+
+    const currentValue =
+        select.value;
+
+
+    const categories =
+        [
+            ...new Set(
+                datasets.map(
+                    dataset =>
+                        dataset.category ||
+                        "General"
+                )
+            )
+        ]
+        .sort();
+
+
+    select.innerHTML = `
+
+        <option value="all">
+            All Categories
+        </option>
+
+    `;
+
+
+    categories.forEach(
+        category => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                category;
+
+            option.textContent =
+                category;
+
+            select.appendChild(
+                option
+            );
+
+        }
+    );
+
+
+    if (
+        categories.includes(
+            currentValue
+        )
+    ) {
+
+        select.value =
+            currentValue;
+
+    }
+
+}
+
+
+/* =========================================================
+   FILTER DATASETS
+========================================================= */
+
+function filterDatasets() {
+
+    const search =
+        document
+            .getElementById(
+                "datasetSearch"
+            )
+            .value
+            .trim()
+            .toLowerCase();
+
+
+    const category =
+        document
+            .getElementById(
+                "categoryFilter"
+            )
+            .value;
+
+
+    const sort =
+        document
+            .getElementById(
+                "sortFilter"
+            )
+            .value;
+
+
+    filteredDatasets =
+        datasets.filter(
+            dataset => {
+
+                const name =
+                    String(
+                        dataset.dataset_name ||
+                        ""
+                    )
+                    .toLowerCase();
+
+
+                const datasetCategory =
+                    String(
+                        dataset.category ||
+                        "General"
+                    );
+
+
+                const matchesSearch =
+                    name.includes(
+                        search
+                    );
+
+
+                const matchesCategory =
+                    category === "all" ||
+                    datasetCategory === category;
+
+
+                return (
+                    matchesSearch &&
+                    matchesCategory
+                );
+
+            }
+        );
+
+
+    /* SORT */
+
+    if (
+        sort === "price-low"
+    ) {
+
+        filteredDatasets.sort(
+            (a, b) => {
+
+                return (
+                    Number(
+                        a.predicted_price ||
+                        0
+                    ) -
+                    Number(
+                        b.predicted_price ||
+                        0
+                    )
+                );
+
+            }
+        );
+
+    }
+
+
+    else if (
+        sort === "price-high"
+    ) {
+
+        filteredDatasets.sort(
+            (a, b) => {
+
+                return (
+                    Number(
+                        b.predicted_price ||
+                        0
+                    ) -
+                    Number(
+                        a.predicted_price ||
+                        0
+                    )
+                );
+
+            }
+        );
+
+    }
+
+
+    else if (
+        sort === "quality"
+    ) {
+
+        filteredDatasets.sort(
+            (a, b) => {
+
+                return (
+                    Number(
+                        b.quality_score ||
+                        0
+                    ) -
+                    Number(
+                        a.quality_score ||
+                        0
+                    )
+                );
+
+            }
+        );
+
+    }
+
+
+    renderDatasetList(
+        filteredDatasets
+    );
+
+
+    document
+        .getElementById(
+            "resultCount"
+        )
+        .textContent =
+        filteredDatasets.length;
+
+
+    document
+        .getElementById(
+            "resultInfo"
+        )
+        .textContent =
+
+        filteredDatasets.length === 0
+
+            ? "No datasets found."
+
+            : `Showing ${
+                filteredDatasets.length
+              } of ${
+                datasets.length
+              } datasets`;
+
+}
+
+
+/* =========================================================
+   RENDER DATASETS
+========================================================= */
+
+function renderDatasetList(list) {
+
+    const container =
+        document.getElementById(
+            "datasets"
+        );
+
+
+    if (!list.length) {
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                <div class="empty-icon">
+                    🔍
+                </div>
+
+                <h3>
+                    No datasets found
+                </h3>
+
+                <p>
+                    Try another dataset name
+                    or category.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        list
+            .map(
+                dataset =>
+                    createDatasetCard(
+                        dataset
+                    )
+            )
+            .join("");
+
+}
+
+
+/* =========================================================
+   CREATE DATASET CARD
+========================================================= */
+
+function createDatasetCard(
+    dataset
+) {
+
+    const id =
+        escapeHtml(
+            dataset.dataset_id ||
+            ""
+        );
+
+
+    const name =
+        escapeHtml(
+            dataset.dataset_name ||
+            "Unnamed Dataset"
+        );
+
+
+    const description =
+        escapeHtml(
+            dataset.description ||
+            "AI-cleaned verified dataset."
+        );
+
+
+    const category =
+        escapeHtml(
+            dataset.category ||
+            "General"
+        );
+
+
+    const rows =
+        Number(
+            dataset.rows ||
+            0
+        );
+
+
+    const columns =
+        Number(
+            dataset.columns ||
+            0
+        );
+
+
+    const quality =
+        Math.max(
+            0,
+            Math.min(
+                100,
+                Number(
+                    dataset.quality_score ||
+                    0
+                )
+            )
+        );
+
+
+    const price =
+        Number(
+            dataset.predicted_price ||
+            0
+        );
+
+
+    return `
+
+        <div class="dataset-card">
+
+
+            <div class="dataset-icon">
+                CSV
+            </div>
+
+
+            <div
+                class="dataset-name"
+                title="${name}">
+
+                ${name}
+
+            </div>
+
+
+            <div class="dataset-description">
+
+                ${description}
+
+            </div>
+
+
+            <div class="tags">
+
+                <span class="tag">
+                    ${category}
+                </span>
+
+                <span class="tag">
+                    ${rows.toLocaleString()} rows
+                </span>
+
+                <span class="tag">
+                    ${columns} columns
+                </span>
+
+            </div>
+
+
+            <div class="quality">
+
+                <div class="quality-header">
+
+                    <span>
+                        Dataset Quality
+                    </span>
+
+                    <strong>
+                        ${quality.toFixed(1)}%
+                    </strong>
+
+                </div>
+
+
+                <div class="quality-bar">
+
+                    <div
+                        class="quality-fill"
+                        style="
+                            width:${quality}%;
+                        ">
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="price-box">
+
+                <div class="price-label">
+                    AI Recommended Price
+                </div>
+
+                <div class="price">
+                    $${price.toFixed(2)}
+                </div>
+
+                <div class="price-note">
+                    Ethereum payment
+                </div>
+
+            </div>
+
+
+            <button
+                class="buy-button"
+                onclick="openPaymentModal('${id}')">
+
+                💎 Buy with Ethereum
+
+            </button>
+
+
+            <button
+                class="details-button"
+                onclick="openDetailsModal('${id}')">
+
+                View Dataset Details
+
+            </button>
+
+
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   FIND DATASET
+========================================================= */
+
+function findDataset(id) {
+
+    return datasets.find(
+        dataset =>
+            String(
+                dataset.dataset_id
+            ) === String(id)
+    );
+
+}
+
+
+/* =========================================================
+   DETAILS MODAL
+========================================================= */
+
+function openDetailsModal(id) {
+
+    const dataset =
+        findDataset(id);
+
+
+    if (!dataset) {
+
+        showToast(
+            "Dataset not found."
+        );
+
+        return;
+
+    }
+
+
+    selectedDataset =
+        dataset;
+
+
+    const name =
+        dataset.dataset_name ||
+        "Unnamed Dataset";
+
+
+    const category =
+        dataset.category ||
+        "General";
+
+
+    const rows =
+        Number(
+            dataset.rows ||
+            0
+        );
+
+
+    const columns =
+        Number(
+            dataset.columns ||
+            0
+        );
+
+
+    const quality =
+        Number(
+            dataset.quality_score ||
+            0
+        );
+
+
+    const price =
+        Number(
+            dataset.predicted_price ||
+            0
+        );
+
+
+    const analysis =
+        dataset.ai_analysis ||
+        dataset.analysis ||
+        dataset.ai_summary ||
+        "AI analysis is available for this dataset.";
+
+
+    document
+        .getElementById(
+            "detailsName"
+        )
+        .textContent =
+        name;
+
+
+    document
+        .getElementById(
+            "detailsSubtitle"
+        )
+        .textContent =
+        `${category} • Verified dataset`;
+
+
+    document
+        .getElementById(
+            "detailsGrid"
+        )
+        .innerHTML = `
+
+            <div class="detail-item">
+
+                <span>
+                    Category
+                </span>
+
+                <strong>
+                    ${escapeHtml(
+                        category
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+                <span>
+                    Quality
+                </span>
+
+                <strong>
+                    ${quality.toFixed(1)}%
+                </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+                <span>
+                    Rows
+                </span>
+
+                <strong>
+                    ${rows.toLocaleString()}
+                </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+                <span>
+                    Columns
+                </span>
+
+                <strong>
+                    ${columns}
+                </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+                <span>
+                    Price
+                </span>
+
+                <strong>
+                    $${price.toFixed(2)}
+                </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+                <span>
+                    Payment
+                </span>
+
+                <strong>
+                    Ethereum
+                </strong>
+
+            </div>
+
+        `;
+
+
+    document
+        .getElementById(
+            "detailsAnalysis"
+        )
+        .textContent =
+        analysis;
+
+
+    document
+        .getElementById(
+            "detailsModal"
+        )
+        .style.display =
+        "flex";
+
+}
+
+
+function closeDetailsModal() {
+
+    document
+        .getElementById(
+            "detailsModal"
+        )
+        .style.display =
+        "none";
+
+}
+
+
+function closeModalOnOverlay(
+    event
+) {
+
+    if (
+        event.target ===
+        document.getElementById(
+            "detailsModal"
+        )
+    ) {
+
+        closeDetailsModal();
+
+    }
+
+}
+
+
+/* =========================================================
+   BUY FROM DETAILS
+========================================================= */
+
+function buySelectedFromDetails() {
+
+    if (!selectedDataset) {
+
+        showToast(
+            "Dataset not selected."
+        );
+
+        return;
+
+    }
+
+
+    closeDetailsModal();
+
+
+    openPaymentModal(
+        selectedDataset.dataset_id
+    );
+
+}
+
+
+/* =========================================================
+   PAYMENT MODAL
+========================================================= */
+
+function openPaymentModal(id) {
+
+    const dataset =
+        findDataset(id);
+
+
+    if (!dataset) {
+
+        showToast(
+            "Dataset not found."
+        );
+
+        return;
+
+    }
+
+
+    selectedDataset =
+        dataset;
+
+
+    document
+        .getElementById(
+            "paymentDataset"
+        )
+        .textContent =
+        dataset.dataset_name ||
+        "Dataset";
+
+
+    document
+        .getElementById(
+            "paymentPrice"
+        )
+        .textContent =
+        "$" +
+        Number(
+            dataset.predicted_price ||
+            0
+        ).toFixed(2);
+
+
+    document
+        .getElementById(
+            "paymentModal"
+        )
+        .style.display =
+        "flex";
+
+}
+
+
+function closePaymentModal() {
+
+    document
+        .getElementById(
+            "paymentModal"
+        )
+        .style.display =
+        "none";
+
+}
+
+
+function closePaymentOverlay(
+    event
+) {
+
+    if (
+        event.target ===
+        document.getElementById(
+            "paymentModal"
+        )
+    ) {
+
+        closePaymentModal();
+
+    }
+
+}
+
+
+/* =========================================================
+   CONNECT WALLET
+========================================================= */
+
+async function connectWallet() {
+
+    if (
+        typeof window.ethereum ===
+        "undefined"
+    ) {
+
+        showToast(
+            "MetaMask is not installed. Please install MetaMask."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        const accounts =
+            await window.ethereum.request({
+                method:
+                    "eth_requestAccounts"
+            });
+
+
+        if (
+            !accounts ||
+            !accounts.length
+        ) {
+
+            throw new Error(
+                "No wallet account found."
+            );
+
+        }
+
+
+        walletAddress =
+            accounts[0];
+
+
+        localStorage.setItem(
+            "buyerWallet",
+            walletAddress
+        );
+
+
+        updateWalletUI();
+
+
+        showToast(
+            "Ethereum wallet connected successfully."
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "WALLET ERROR:",
+            error
+        );
+
+
+        showToast(
+            error.message ||
+            "Wallet connection failed."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   CHECK EXISTING WALLET
+========================================================= */
+
+async function checkExistingWallet() {
+
+    if (
+        typeof window.ethereum ===
+        "undefined"
+    ) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const accounts =
+            await window.ethereum.request({
+                method:
+                    "eth_accounts"
+            });
+
+
+        if (
+            accounts &&
+            accounts.length
+        ) {
+
+            walletAddress =
+                accounts[0];
+
+            updateWalletUI();
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   UPDATE WALLET UI
+========================================================= */
+
+function updateWalletUI() {
+
+    const button =
+        document.getElementById(
+            "walletButton"
+        );
+
+
+    const status =
+        document.getElementById(
+            "walletStatus"
+        );
+
+
+    if (!walletAddress) {
+
+        button.textContent =
+            "Connect Wallet";
+
+        status.style.display =
+            "none";
+
+        return;
+
+    }
+
+
+    button.textContent =
+        walletAddress.slice(0, 6) +
+        "..." +
+        walletAddress.slice(-4);
+
+
+    status.textContent =
+        "✓ Wallet Connected";
+
+
+    status.style.display =
+        "inline-block";
+
+}
+
+
+/* =========================================================
+   CONFIRM PURCHASE
+========================================================= */
+
+async function confirmPurchase() {
+
+    if (!selectedDataset) {
+
+        showToast(
+            "Please select a dataset."
+        );
+
+        return;
+
+    }
+
+
+    /*
+        STEP 1:
+        Connect wallet if not connected.
+    */
+
+    if (!walletAddress) {
+
+        await connectWallet();
+
+        if (!walletAddress) {
+
+            return;
+
+        }
+
+    }
+
+
+    /*
+        STEP 2:
+
+        REAL SMART-CONTRACT PAYMENT
+        WILL BE CONNECTED HERE.
+
+        Flow will become:
+
+        Buyer
+          ↓
+        MetaMask
+          ↓
+        Solidity Contract
+          ↓
+        Payment
+          ↓
+        Blockchain confirmation
+          ↓
+        Backend verification
+          ↓
+        Dataset download unlock
+    */
+
+
+    closePaymentModal();
+
+
+    showToast(
+        "Wallet connected. Smart-contract payment will be connected next."
+    );
+
+}
+
+
+/* =========================================================
+   PURCHASES
+========================================================= */
+
+function loadPurchases() {
+
+    const purchases =
+        JSON.parse(
+            localStorage.getItem(
+                "buyerPurchases"
+            ) || "[]"
+        );
+
+
+    const container =
+        document.getElementById(
+            "purchaseList"
+        );
+
+
+    if (!purchases.length) {
+
+        container.innerHTML = `
+
+            <div class="purchase-empty">
+
+                No purchases yet.
+
+                <br><br>
+
+                Purchased datasets will appear
+                here after blockchain payment.
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        purchases
+            .map(
+                purchase => `
+
+                    <div
+                        style="
+                            padding:15px;
+                            border-bottom:1px solid #eee;
+                        ">
+
+                        <strong>
+                            ${escapeHtml(
+                                purchase.name
+                            )}
+                        </strong>
+
+                        <div
+                            style="
+                                color:#6b7280;
+                                font-size:11px;
+                                margin-top:5px;
+                            ">
+
+                            Transaction:
+                            ${escapeHtml(
+                                purchase.txHash ||
+                                "Pending"
+                            )}
+
+                        </div>
+
+                    </div>
+
+                `
+            )
+            .join("");
+
+}
+
+
+/* =========================================================
+   SCROLL TO PURCHASES
+========================================================= */
+
+function scrollToPurchases() {
+
+    document
+        .getElementById(
+            "purchases"
+        )
+        .scrollIntoView({
+            behavior:
+                "smooth"
+        });
+
+}
+
+
+/* =========================================================
+   SHOW MARKETPLACE
+========================================================= */
+
+function showMarketplace() {
+
+    document
+        .getElementById(
+            "marketplace"
+        )
+        .scrollIntoView({
+            behavior:
+                "smooth"
+        });
+
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+function showToast(
+    message
+) {
+
+    const toast =
+        document.getElementById(
+            "toast"
+        );
+
+
+    toast.textContent =
+        message;
+
+
+    toast.style.display =
+        "block";
+
+
+    clearTimeout(
+        window.toastTimer
+    );
+
+
+    window.toastTimer =
+        setTimeout(
+            () => {
+
+                toast.style.display =
+                    "none";
+
+            },
+            3500
+        );
+
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(
+    value
+) {
+
+    return String(
+        value
+    )
+    .replace(
+        /&/g,
+        "&amp;"
+    )
+    .replace(
+        /</g,
+        "&lt;"
+    )
+    .replace(
+        />/g,
+        "&gt;"
+    )
+    .replace(
+        /"/g,
+        "&quot;"
+    )
+    .replace(
+        /'/g,
+        "&#039;"
+    );
+
+}
+
+
+/* =========================================================
+   METAMASK ACCOUNT CHANGE
+========================================================= */
+
+if (
+    typeof window.ethereum !==
+    "undefined"
+) {
+
+    window.ethereum.on(
+        "accountsChanged",
+        accounts => {
+
+            if (
+                !accounts ||
+                !accounts.length
+            ) {
+
+                walletAddress =
+                    null;
+
+                localStorage.removeItem(
+                    "buyerWallet"
+                );
+
+            } else {
+
+                walletAddress =
+                    accounts[0];
+
+                localStorage.setItem(
+                    "buyerWallet",
+                    walletAddress
+                );
+
+            }
+
+
+            updateWalletUI();
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   START PURCHASES
+========================================================= */
+
+loadPurchases();
+
+
+</script>
+
+</body>
+</html>

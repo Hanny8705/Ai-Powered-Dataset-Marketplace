@@ -1,0 +1,11 @@
+customer_id,name,age,gender,product,category,quantity,price,city,purchase_date
+1001.0,Aarav,24,Male,Laptop,Electronics,1,55000,Nagpur,1767571200000000
+1002.0,Ananya,27,Male,Phone,Electronics,2,25000,Mumbai,1767744000000000
+1003.0,Rohan,31,Male,Headphones,Electronics,3,1500,Pune,1767830400000000
+1004.0,Diya,22,Female,Shoes,Fashion,1,2200,Nagpur,1768003200000000
+1005.0,Vihaan,29,Male,Watch,Accessories,1,3500,Delhi,1768176000000000
+1005.0,Isha,26,Female,Laptop,Electronics,1,62000,Mumbai,1768435200000000
+1007.0,Aarav,35,Male,Shirt,Fashion,2,1200,Pune,1768608000000000
+1008.0,Meera,23,Female,Phone,Electronics,1,30000,Nagpur,1768780800000000
+1009.0,Arjun,30,Male,Backpack,Accessories,2,1800,Delhi,-9223372036854775808
+1010.0,Sanya,25,Female,Shoes,Fashion,1,2800,Mumbai,1769040000000000

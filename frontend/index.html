@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>DataMarket | Login</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+
+            font-family:
+                Inter,
+                Arial,
+                sans-serif;
+
+            color: white;
+
+            background:
+                radial-gradient(
+                    circle at 10% 10%,
+                    rgba(124, 58, 237, .20),
+                    transparent 32%
+                ),
+                radial-gradient(
+                    circle at 90% 90%,
+                    rgba(79, 70, 229, .18),
+                    transparent 30%
+                ),
+                #080810;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .page {
+            min-height: 100vh;
+
+            display: grid;
+
+            grid-template-columns:
+                1.05fr .95fr;
+        }
+
+        /* ================= LEFT ================= */
+
+        .left {
+            min-height: 100vh;
+
+            padding: 55px;
+
+            display: flex;
+
+            align-items: center;
+
+            position: relative;
+        }
+
+        .brand {
+            position: absolute;
+
+            top: 35px;
+            left: 55px;
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            font-size: 24px;
+
+            font-weight: 800;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 12px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #8b5cf6,
+                    #6366f1
+                );
+
+            box-shadow:
+                0 12px 30px
+                rgba(124,58,237,.35);
+        }
+
+        .hero {
+            max-width: 680px;
+        }
+
+        .eyebrow {
+            color: #a78bfa;
+
+            font-size: 12px;
+
+            font-weight: 800;
+
+            letter-spacing: 2px;
+
+            margin-bottom: 20px;
+        }
+
+        .hero h1 {
+            font-size:
+                clamp(45px, 5vw, 75px);
+
+            line-height: 1.02;
+
+            letter-spacing: -3px;
+
+            margin-bottom: 25px;
+        }
+
+        .gradient {
+            background:
+                linear-gradient(
+                    90deg,
+                    #a78bfa,
+                    #818cf8,
+                    #c084fc
+                );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+
+            -webkit-text-fill-color: transparent;
+        }
+
+        .description {
+            color: #9999a8;
+
+            font-size: 16px;
+
+            line-height: 1.7;
+
+            max-width: 600px;
+
+            margin-bottom: 35px;
+        }
+
+        .features {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 14px;
+        }
+
+        .feature {
+            padding: 20px;
+
+            border-radius: 16px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.08);
+
+            background:
+                rgba(255,255,255,.035);
+        }
+
+        .number {
+            color: #a78bfa;
+
+            font-size: 12px;
+
+            font-weight: 800;
+
+            margin-bottom: 10px;
+        }
+
+        .feature h3 {
+            font-size: 15px;
+
+            margin-bottom: 7px;
+        }
+
+        .feature p {
+            color: #777783;
+
+            font-size: 11px;
+
+            line-height: 1.5;
+        }
+
+        /* ================= RIGHT ================= */
+
+        .right {
+            min-height: 100vh;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 30px;
+        }
+
+        .card {
+            width: 100%;
+
+            max-width: 500px;
+
+            padding: 38px;
+
+            border-radius: 26px;
+
+            background:
+                rgba(17,17,27,.95);
+
+            border:
+                1px solid
+                rgba(255,255,255,.09);
+
+            box-shadow:
+                0 35px 90px
+                rgba(0,0,0,.5);
+        }
+
+        .welcome {
+            color: #a78bfa;
+
+            font-size: 11px;
+
+            font-weight: 800;
+
+            letter-spacing: 1.7px;
+
+            margin-bottom: 9px;
+        }
+
+        .heading h2 {
+            font-size: 32px;
+
+            margin-bottom: 9px;
+        }
+
+        .subtitle {
+            color: #858592;
+
+            font-size: 13px;
+
+            line-height: 1.6;
+
+            margin-bottom: 27px;
+        }
+
+        .role-title {
+            color: #d4d4da;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            margin-bottom: 10px;
+        }
+
+        .roles {
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 12px;
+
+            margin-bottom: 22px;
+        }
+
+        .role {
+            padding: 18px;
+
+            text-align: left;
+
+            color: white;
+
+            border:
+                1px solid #292936;
+
+            border-radius: 15px;
+
+            background: #12121b;
+
+            transition: .2s;
+        }
+
+        .role:hover {
+            transform: translateY(-2px);
+
+            border-color: #8b5cf6;
+        }
+
+        .role.active {
+            border-color: #8b5cf6;
+
+            background:
+                rgba(124,58,237,.14);
+
+            box-shadow:
+                0 0 0 1px
+                rgba(139,92,246,.15);
+        }
+
+        .role-icon {
+            width: 38px;
+            height: 38px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 10px;
+
+            background: #20202d;
+
+            margin-bottom: 10px;
+        }
+
+        .role h3 {
+            font-size: 15px;
+
+            margin-bottom: 5px;
+        }
+
+        .role p {
+            color: #858592;
+
+            font-size: 11px;
+
+            line-height: 1.4;
+        }
+
+        .message {
+            display: none;
+
+            padding: 12px;
+
+            border-radius: 10px;
+
+            font-size: 12px;
+
+            line-height: 1.5;
+
+            margin-bottom: 16px;
+        }
+
+        .message.error {
+            display: block;
+
+            color: #fca5a5;
+
+            background:
+                rgba(127,29,29,.18);
+
+            border:
+                1px solid
+                rgba(239,68,68,.25);
+        }
+
+        .message.success {
+            display: block;
+
+            color: #86efac;
+
+            background:
+                rgba(20,83,45,.18);
+
+            border:
+                1px solid
+                rgba(34,197,94,.25);
+        }
+
+        .group {
+            margin-bottom: 17px;
+        }
+
+        label {
+            display: block;
+
+            color: #d4d4da;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+
+            padding: 14px;
+
+            color: white;
+
+            background: #0c0c13;
+
+            border:
+                1px solid #292936;
+
+            border-radius: 11px;
+
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #8b5cf6;
+
+            box-shadow:
+                0 0 0 3px
+                rgba(139,92,246,.1);
+        }
+
+        input::placeholder {
+            color: #555561;
+        }
+
+        .button {
+            width: 100%;
+
+            padding: 15px;
+
+            border: none;
+
+            border-radius: 11px;
+
+            color: white;
+
+            font-weight: 800;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #7c3aed,
+                    #4f46e5
+                );
+
+            transition: .2s;
+        }
+
+        .button:hover {
+            transform: translateY(-1px);
+
+            box-shadow:
+                0 12px 30px
+                rgba(99,102,241,.25);
+        }
+
+        .button:disabled {
+            opacity: .6;
+
+            cursor: not-allowed;
+
+            transform: none;
+        }
+
+        .divider {
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            margin: 23px 0;
+
+            color: #555561;
+
+            font-size: 10px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+
+            height: 1px;
+
+            flex: 1;
+
+            background: #25252f;
+        }
+
+        .switch {
+            text-align: center;
+
+            color: #777783;
+
+            font-size: 12px;
+        }
+
+        .switch button {
+            border: none;
+
+            background: transparent;
+
+            color: #a78bfa;
+
+            font-weight: 800;
+        }
+
+        #register {
+            display: none;
+        }
+
+        /* ================= RESPONSIVE ================= */
+
+        @media (max-width: 1000px) {
+
+            .page {
+                grid-template-columns: 1fr;
+            }
+
+            .left {
+                min-height: auto;
+
+                padding:
+                    120px 35px 50px;
+            }
+
+            .right {
+                min-height: auto;
+
+                padding:
+                    20px 25px 60px;
+            }
+
+            .brand {
+                left: 35px;
+            }
+
+        }
+
+        @media (max-width: 600px) {
+
+            .left {
+                padding:
+                    105px 20px 40px;
+            }
+
+            .brand {
+                left: 20px;
+            }
+
+            .hero h1 {
+                font-size: 46px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .right {
+                padding:
+                    15px;
+            }
+
+            .card {
+                padding: 25px 20px;
+            }
+
+            .roles {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="page">
+
+
+    <!-- ==================================================
+         LEFT
+    =================================================== -->
+
+    <section class="left">
+
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                D
+            </div>
+
+            <span>
+                DataMarket
+            </span>
+
+        </div>
+
+
+        <div class="hero">
+
+            <div class="eyebrow">
+                AI-POWERED DATA MARKETPLACE
+            </div>
+
+
+            <h1>
+
+                Buy and sell
+
+                <span class="gradient">
+                    quality data.
+                </span>
+
+            </h1>
+
+
+            <p class="description">
+
+                Upload, analyze, clean and monetize
+                datasets with AI-powered quality analysis,
+                automated cleaning and intelligent pricing.
+
+            </p>
+
+
+            <div class="features">
+
+
+                <div class="feature">
+
+                    <div class="number">
+                        01
+                    </div>
+
+                    <h3>
+                        AI Analysis
+                    </h3>
+
+                    <p>
+                        Automatically analyze dataset
+                        quality, missing values and duplicates.
+                    </p>
+
+                </div>
+
+
+                <div class="feature">
+
+                    <div class="number">
+                        02
+                    </div>
+
+                    <h3>
+                        Smart Pricing
+                    </h3>
+
+                    <p>
+                        Generate an intelligent recommended
+                        marketplace price.
+                    </p>
+
+                </div>
+
+
+                <div class="feature">
+
+                    <div class="number">
+                        03
+                    </div>
+
+                    <h3>
+                        Trusted Marketplace
+                    </h3>
+
+                    <p>
+                        Connect buyers and sellers through
+                        one secure marketplace.
+                    </p>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==================================================
+         RIGHT
+    =================================================== -->
+
+    <section class="right">
+
+
+        <div class="card">
+
+
+            <!-- ==================================================
+                 LOGIN
+            =================================================== -->
+
+            <div id="login">
+
+                <div class="heading">
+
+                    <div class="welcome">
+                        WELCOME TO DATAMARKET
+                    </div>
+
+                    <h2>
+                        Sign in
+                    </h2>
+
+                    <p class="subtitle">
+                        Choose your account type and continue.
+                    </p>
+
+                </div>
+
+
+                <div class="role-title">
+                    Login as
+                </div>
+
+
+                <div class="roles">
+
+
+                    <button
+                        type="button"
+                        class="role"
+                        id="sellerLoginRole"
+                        onclick="selectLoginRole('seller')"
+                    >
+
+                        <div class="role-icon">
+                            📊
+                        </div>
+
+                        <h3>
+                            Seller
+                        </h3>
+
+                        <p>
+                            Upload and sell datasets.
+                        </p>
+
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="role"
+                        id="buyerLoginRole"
+                        onclick="selectLoginRole('buyer')"
+                    >
+
+                        <div class="role-icon">
+                            🛒
+                        </div>
+
+                        <h3>
+                            Buyer
+                        </h3>
+
+                        <p>
+                            Discover and buy datasets.
+                        </p>
+
+                    </button>
+
+
+                </div>
+
+
+                <div
+                    id="loginMessage"
+                    class="message"
+                ></div>
+
+
+                <form id="loginForm">
+
+
+                    <div class="group">
+
+                        <label for="loginEmail">
+                            Email Address
+                        </label>
+
+                        <input
+                            type="email"
+                            id="loginEmail"
+                            placeholder="you@example.com"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="group">
+
+                        <label for="loginPassword">
+                            Password
+                        </label>
+
+                        <input
+                            type="password"
+                            id="loginPassword"
+                            placeholder="Enter your password"
+                            required
+                        >
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="button"
+                        id="loginButton"
+                    >
+                        Sign In
+                    </button>
+
+
+                </form>
+
+
+                <div class="divider">
+                    OR
+                </div>
+
+
+                <div class="switch">
+
+                    Don't have an account?
+
+                    <button
+                        type="button"
+                        onclick="showRegister()"
+                    >
+                        Create account
+                    </button>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- ==================================================
+                 REGISTER
+            =================================================== -->
+
+            <div id="register">
+
+                <div class="heading">
+
+                    <div class="welcome">
+                        JOIN DATAMARKET
+                    </div>
+
+                    <h2>
+                        Create account
+                    </h2>
+
+                    <p class="subtitle">
+                        Buyer and Seller accounts use separate
+                        email addresses.
+                    </p>
+
+                </div>
+
+
+                <div class="role-title">
+                    Register as
+                </div>
+
+
+                <div class="roles">
+
+
+                    <button
+                        type="button"
+                        class="role"
+                        id="sellerRegisterRole"
+                        onclick="selectRegisterRole('seller')"
+                    >
+
+                        <div class="role-icon">
+                            📊
+                        </div>
+
+                        <h3>
+                            Seller
+                        </h3>
+
+                        <p>
+                            Create a seller account.
+                        </p>
+
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="role"
+                        id="buyerRegisterRole"
+                        onclick="selectRegisterRole('buyer')"
+                    >
+
+                        <div class="role-icon">
+                            🛒
+                        </div>
+
+                        <h3>
+                            Buyer
+                        </h3>
+
+                        <p>
+                            Create a buyer account.
+                        </p>
+
+                    </button>
+
+
+                </div>
+
+
+                <div
+                    id="registerMessage"
+                    class="message"
+                ></div>
+
+
+                <form id="registerForm">
+
+
+                    <div class="group">
+
+                        <label for="registerName">
+                            Full Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="registerName"
+                            placeholder="Your full name"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="group">
+
+                        <label for="registerEmail">
+                            Email Address
+                        </label>
+
+                        <input
+                            type="email"
+                            id="registerEmail"
+                            placeholder="you@example.com"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="group">
+
+                        <label for="registerPassword">
+                            Password
+                        </label>
+
+                        <input
+                            type="password"
+                            id="registerPassword"
+                            placeholder="Create password"
+                            minlength="6"
+                            required
+                        >
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="button"
+                        id="registerButton"
+                    >
+                        Create Account
+                    </button>
+
+
+                </form>
+
+
+                <div class="divider">
+                    OR
+                </div>
+
+
+                <div class="switch">
+
+                    Already have an account?
+
+                    <button
+                        type="button"
+                        onclick="showLogin()"
+                    >
+                        Sign in
+                    </button>
+
+                </div>
+
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<script>
+
+    /* =====================================================
+       API
+    ===================================================== */
+
+    const API =
+        "http://127.0.0.1:8000";
+
+
+    /* =====================================================
+       ROLE STATE
+    ===================================================== */
+
+    let loginRole = "";
+
+    let registerRole = "";
+
+
+    /* =====================================================
+       MESSAGE
+    ===================================================== */
+
+    function message(
+        id,
+        text,
+        type
+    ) {
+
+        const element =
+            document.getElementById(id);
+
+        element.textContent = text;
+
+        element.className =
+            "message " + type;
+
+    }
+
+
+    function clearMessage(id) {
+
+        const element =
+            document.getElementById(id);
+
+        element.textContent = "";
+
+        element.className =
+            "message";
+
+    }
+
+
+    /* =====================================================
+       LOGIN ROLE
+    ===================================================== */
+
+    function selectLoginRole(role) {
+
+        loginRole = role;
+
+
+        document
+            .getElementById(
+                "sellerLoginRole"
+            )
+            .classList
+            .remove("active");
+
+
+        document
+            .getElementById(
+                "buyerLoginRole"
+            )
+            .classList
+            .remove("active");
+
+
+        if (role === "seller") {
+
+            document
+                .getElementById(
+                    "sellerLoginRole"
+                )
+                .classList
+                .add("active");
+
+        }
+
+
+        if (role === "buyer") {
+
+            document
+                .getElementById(
+                    "buyerLoginRole"
+                )
+                .classList
+                .add("active");
+
+        }
+
+
+        clearMessage(
+            "loginMessage"
+        );
+
+    }
+
+
+    /* =====================================================
+       REGISTER ROLE
+    ===================================================== */
+
+    function selectRegisterRole(role) {
+
+        registerRole = role;
+
+
+        document
+            .getElementById(
+                "sellerRegisterRole"
+            )
+            .classList
+            .remove("active");
+
+
+        document
+            .getElementById(
+                "buyerRegisterRole"
+            )
+            .classList
+            .remove("active");
+
+
+        if (role === "seller") {
+
+            document
+                .getElementById(
+                    "sellerRegisterRole"
+                )
+                .classList
+                .add("active");
+
+        }
+
+
+        if (role === "buyer") {
+
+            document
+                .getElementById(
+                    "buyerRegisterRole"
+                )
+                .classList
+                .add("active");
+
+        }
+
+
+        clearMessage(
+            "registerMessage"
+        );
+
+    }
+
+
+    /* =====================================================
+       SHOW REGISTER
+    ===================================================== */
+
+    function showRegister() {
+
+        document
+            .getElementById("login")
+            .style.display = "none";
+
+
+        document
+            .getElementById("register")
+            .style.display = "block";
+
+
+        clearMessage(
+            "loginMessage"
+        );
+
+    }
+
+
+    /* =====================================================
+       SHOW LOGIN
+    ===================================================== */
+
+    function showLogin() {
+
+        document
+            .getElementById("register")
+            .style.display = "none";
+
+
+        document
+            .getElementById("login")
+            .style.display = "block";
+
+
+        clearMessage(
+            "registerMessage"
+        );
+
+    }
+
+
+    /* =====================================================
+       LOGIN
+    ===================================================== */
+
+    document
+        .getElementById("loginForm")
+        .addEventListener(
+            "submit",
+            async function(event) {
+
+                event.preventDefault();
+
+
+                clearMessage(
+                    "loginMessage"
+                );
+
+
+                if (!loginRole) {
+
+                    message(
+                        "loginMessage",
+                        "Please select Buyer or Seller.",
+                        "error"
+                    );
+
+                    return;
+
+                }
+
+
+                const email =
+                    document
+                        .getElementById(
+                            "loginEmail"
+                        )
+                        .value
+                        .trim()
+                        .toLowerCase();
+
+
+                const password =
+                    document
+                        .getElementById(
+                            "loginPassword"
+                        )
+                        .value;
+
+
+                const button =
+                    document
+                        .getElementById(
+                            "loginButton"
+                        );
+
+
+                button.disabled = true;
+
+                button.textContent =
+                    "Signing in...";
+
+
+                try {
+
+                    const response =
+                        await fetch(
+                            API + "/login",
+                            {
+                                method: "POST",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/json"
+                                },
+
+                                body:
+                                    JSON.stringify({
+                                        email:
+                                            email,
+
+                                        password:
+                                            password,
+
+                                        role:
+                                            loginRole
+                                    })
+                            }
+                        );
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            data.detail ||
+                            "Login failed."
+                        );
+
+                    }
+
+
+                    /*
+                     * Save session
+                     */
+
+                    localStorage.setItem(
+                        "authToken",
+                        data.token
+                    );
+
+
+                    localStorage.setItem(
+                        "currentUser",
+                        JSON.stringify(
+                            data.user
+                        )
+                    );
+
+
+                    localStorage.setItem(
+                        "userRole",
+                        data.user.role
+                    );
+
+
+                    message(
+                        "loginMessage",
+                        "Login successful. Opening dashboard...",
+                        "success"
+                    );
+
+
+                    setTimeout(
+                        function() {
+
+                            if (
+                                data.user.role
+                                ===
+                                "seller"
+                            ) {
+
+                                window.location.href =
+                                    "seller.html";
+
+                            }
+
+                            else {
+
+                                window.location.href =
+                                    "buyer.html";
+
+                            }
+
+                        },
+                        500
+                    );
+
+
+                }
+
+                catch (error) {
+
+                    message(
+                        "loginMessage",
+                        error.message ||
+                        "Login failed.",
+                        "error"
+                    );
+
+                }
+
+                finally {
+
+                    button.disabled =
+                        false;
+
+                    button.textContent =
+                        "Sign In";
+
+                }
+
+            }
+        );
+
+
+    /* =====================================================
+       REGISTER
+    ===================================================== */
+
+    document
+        .getElementById("registerForm")
+        .addEventListener(
+            "submit",
+            async function(event) {
+
+                event.preventDefault();
+
+
+                clearMessage(
+                    "registerMessage"
+                );
+
+
+                if (!registerRole) {
+
+                    message(
+                        "registerMessage",
+                        "Please select Buyer or Seller.",
+                        "error"
+                    );
+
+                    return;
+
+                }
+
+
+                const name =
+                    document
+                        .getElementById(
+                            "registerName"
+                        )
+                        .value
+                        .trim();
+
+
+                const email =
+                    document
+                        .getElementById(
+                            "registerEmail"
+                        )
+                        .value
+                        .trim()
+                        .toLowerCase();
+
+
+                const password =
+                    document
+                        .getElementById(
+                            "registerPassword"
+                        )
+                        .value;
+
+
+                if (password.length < 6) {
+
+                    message(
+                        "registerMessage",
+                        "Password must contain at least 6 characters.",
+                        "error"
+                    );
+
+                    return;
+
+                }
+
+
+                const button =
+                    document
+                        .getElementById(
+                            "registerButton"
+                        );
+
+
+                button.disabled = true;
+
+                button.textContent =
+                    "Creating account...";
+
+
+                try {
+
+                    const response =
+                        await fetch(
+                            API + "/register",
+                            {
+                                method: "POST",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/json"
+                                },
+
+                                body:
+                                    JSON.stringify({
+                                        name:
+                                            name,
+
+                                        email:
+                                            email,
+
+                                        password:
+                                            password,
+
+                                        role:
+                                            registerRole
+                                    })
+                            }
+                        );
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            data.detail ||
+                            "Registration failed."
+                        );
+
+                    }
+
+
+                    message(
+                        "registerMessage",
+                        "Account created successfully. Please sign in.",
+                        "success"
+                    );
+
+
+                    /*
+                     * Prepare login
+                     */
+
+                    document
+                        .getElementById(
+                            "loginEmail"
+                        )
+                        .value =
+                        email;
+
+
+                    loginRole =
+                        registerRole;
+
+
+                    document
+                        .getElementById(
+                            "sellerLoginRole"
+                        )
+                        .classList
+                        .remove("active");
+
+
+                    document
+                        .getElementById(
+                            "buyerLoginRole"
+                        )
+                        .classList
+                        .remove("active");
+
+
+                    if (
+                        registerRole
+                        ===
+                        "seller"
+                    ) {
+
+                        document
+                            .getElementById(
+                                "sellerLoginRole"
+                            )
+                            .classList
+                            .add("active");
+
+                    }
+
+                    else {
+
+                        document
+                            .getElementById(
+                                "buyerLoginRole"
+                            )
+                            .classList
+                            .add("active");
+
+                    }
+
+
+                    setTimeout(
+                        function() {
+
+                            showLogin();
+
+                            message(
+                                "loginMessage",
+                                "Account created. Please sign in.",
+                                "success"
+                            );
+
+                        },
+                        800
+                    );
+
+
+                }
+
+                catch (error) {
+
+                    message(
+                        "registerMessage",
+                        error.message ||
+                        "Registration failed.",
+                        "error"
+                    );
+
+                }
+
+                finally {
+
+                    button.disabled =
+                        false;
+
+                    button.textContent =
+                        "Create Account";
+
+                }
+
+            }
+        );
+
+</script>
+
+
+</body>
+</html>

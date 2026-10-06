@@ -1,0 +1,34 @@
+product_id,product_name,category,price,rating,units_sold,customer_region
+P001,Laptop,Electronics,72000.0,4.5,24.0,North
+P002,Wireless Mouse,Accessories,899.0,4.1,118.0,West
+P003,Keyboard,Accessories,,4.3,76.0,South
+P004,Monitor,Electronics,18500.0,,31.0,East
+P005,Headphones,Audio,3499.0,4.0,145.0,North
+P006,Webcam,Accessories,2599.0,3.8,67.0,
+P007,USB Hub,Accessories,1299.0,4.2,92.0,West
+P008,SSD,Storage,6499.0,4.6,,South
+P009,Tablet,Electronics,22999.0,4.4,38.0,East
+P010,Smartphone,Mobile,,4.2,83.0,North
+P011,Printer,Office,8500.0,,21.0,West
+P012,Router,Networking,2199.0,3.9,104.0,South
+P013,Speaker,Audio,3299.0,4.1,57.0,East
+P014,Power Bank,Mobile,1799.0,4.0,132.0,North
+P015,Smart Watch,Wearables,5499.0,4.3,46.0,West
+P016,Desk Lamp,Office,1499.0,4.5,88.0,South
+P017,Office Chair,Furniture,,4.1,19.0,East
+P018,Microphone,Audio,4299.0,3.7,63.0,North
+P019,Graphics Tablet,Accessories,6999.0,,35.0,
+P020,Projector,Electronics,28500.0,4.6,12.0,West
+P021,Laptop Stand,Office,1199.0,4.2,71.0,South
+P022,HDMI Cable,Accessories,399.0,3.9,,East
+P023,External HDD,Storage,5799.0,4.4,44.0,North
+P024,Bluetooth Adapter,Networking,799.0,3.8,96.0,West
+P025,Mechanical Keyboard,Accessories,4999.0,4.7,52.0,South
+P026,Phone Case,Mobile,699.0,,173.0,East
+P027,Smart Bulb,Smart Home,1299.0,4.2,81.0,North
+P028,Fitness Band,Wearables,2499.0,4.0,69.0,West
+P029,Ethernet Cable,Networking,599.0,4.1,47.0,South
+P030,Charging Dock,Mobile,,4.3,112.0,East
+P005,Headphones,Audio,3499.0,4.0,145.0,North
+P012,Router,Networking,2199.0,3.9,104.0,South
+P021,Laptop Stand,Office,1199.0,4.2,71.0,South

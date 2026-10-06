@@ -2,19 +2,11 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seller Dashboard - DataMarket</title>
 
-
     <style>
-
         * {
             box-sizing: border-box;
             margin: 0;
@@ -22,1258 +14,797 @@
             font-family: Arial, sans-serif;
         }
 
-
         body {
             background: #f5f7fb;
             color: #172033;
         }
-
 
         .dashboard {
             display: flex;
             min-height: 100vh;
         }
 
-
         /* ================= SIDEBAR ================= */
-
         .sidebar {
-
             width: 280px;
-
             background: #101827;
-
             color: white;
-
             padding: 28px 18px;
-
             position: fixed;
-
             left: 0;
             top: 0;
             bottom: 0;
         }
 
-
         .logo {
             margin-bottom: 45px;
         }
-
 
         .logo h2 {
             font-size: 26px;
         }
 
-
         .logo small {
-
             display: block;
-
             color: #aab3c5;
-
             margin-top: 8px;
         }
 
-
         .nav {
-
             display: flex;
-
             flex-direction: column;
-
             gap: 10px;
         }
 
-
         .nav a {
-
             text-decoration: none;
-
             color: #cbd5e1;
-
             padding: 15px 16px;
-
             border-radius: 9px;
-
             display: block;
         }
-
 
         .nav a:hover,
         .nav a.active {
-
             background: #2563eb;
-
             color: white;
         }
 
-
         .seller-info {
-
             position: absolute;
-
             bottom: 25px;
-
             left: 18px;
             right: 18px;
-
             border-top: 1px solid #273247;
-
             padding-top: 20px;
         }
 
-
         .seller-info strong {
-
             display: block;
-
             font-size: 15px;
         }
 
-
         .seller-info span {
-
             color: #94a3b8;
-
             font-size: 13px;
         }
 
-
         /* ================= MAIN ================= */
-
         .main {
-
             margin-left: 280px;
-
             width: calc(100% - 280px);
-
             padding: 40px;
         }
 
-
         .top {
-
             display: flex;
-
             justify-content: space-between;
-
             align-items: center;
-
             margin-bottom: 30px;
         }
 
-
         .top h1 {
-
             font-size: 32px;
-
             margin-bottom: 7px;
         }
 
-
         .top p {
-
             color: #667085;
         }
 
-
         .upload-btn {
-
             background: #635bff;
-
             color: white;
-
             text-decoration: none;
-
             padding: 14px 22px;
-
             border-radius: 9px;
-
             font-weight: 600;
         }
 
-
         .upload-btn:hover {
-
             background: #5148e5;
         }
 
-
         /* ================= STATS ================= */
-
         .stats {
-
             display: grid;
-
-            grid-template-columns:
-                repeat(3, 1fr);
-
+            grid-template-columns: repeat(3, 1fr);
             gap: 18px;
-
             margin-bottom: 28px;
         }
 
-
         .stat {
-
             background: white;
-
             border: 1px solid #e5e7eb;
-
             border-radius: 14px;
-
             padding: 24px;
         }
 
-
         .stat-label {
-
             color: #667085;
-
             font-size: 14px;
-
             margin-bottom: 10px;
         }
 
-
         .stat-value {
-
             font-size: 30px;
-
             font-weight: 700;
         }
 
-
         /* ================= SECTION ================= */
-
         .section {
-
             background: white;
-
             border: 1px solid #e5e7eb;
-
             border-radius: 14px;
-
             padding: 25px;
         }
 
-
         .section-header {
-
             display: flex;
-
             justify-content: space-between;
-
             align-items: center;
-
             margin-bottom: 20px;
         }
 
-
         .section-header h2 {
-
             font-size: 21px;
         }
 
-
         .refresh {
-
             border: none;
-
             background: #eef2ff;
-
             color: #4338ca;
-
             padding: 9px 15px;
-
             border-radius: 8px;
-
             cursor: pointer;
-
             font-weight: 600;
         }
 
-
         /* ================= DATASET ================= */
-
         .dataset {
-
             border: 1px solid #e5e7eb;
-
             border-radius: 12px;
-
             padding: 20px;
-
             margin-bottom: 15px;
         }
 
-
         .dataset-top {
-
             display: flex;
-
             justify-content: space-between;
-
             align-items: flex-start;
-
             margin-bottom: 16px;
         }
 
-
         .dataset-name {
-
             font-size: 19px;
-
             font-weight: 700;
-
             margin-bottom: 6px;
         }
 
-
         .dataset-file {
-
             color: #667085;
-
             font-size: 13px;
         }
 
-
         .status {
-
             background: #ecfdf3;
-
             color: #087443;
-
             padding: 7px 12px;
-
             border-radius: 20px;
-
             font-size: 12px;
-
             font-weight: 600;
         }
 
-
         .waiting {
-
             background: #fff7ed;
-
             color: #c2410c;
         }
 
-
         .dataset-details {
-
             display: grid;
-
-            grid-template-columns:
-                repeat(4, 1fr);
-
+            grid-template-columns: repeat(4, 1fr);
             gap: 15px;
-
             margin-bottom: 18px;
         }
 
-
         .detail {
-
             background: #f8fafc;
-
             padding: 13px;
-
             border-radius: 9px;
         }
 
-
         .detail span {
-
             display: block;
-
             color: #667085;
-
             font-size: 12px;
-
             margin-bottom: 5px;
         }
 
-
         .detail strong {
-
             font-size: 16px;
         }
 
-
         /* ================= BUTTONS ================= */
-
         .dataset-actions {
-
             display: flex;
-
             gap: 10px;
-
             flex-wrap: wrap;
         }
 
-
         .action-btn {
-
             border: none;
-
             padding: 10px 15px;
-
             border-radius: 8px;
-
             cursor: pointer;
-
             font-weight: 600;
         }
 
-
         .download {
-
             background: #eef2ff;
-
             color: #4338ca;
         }
 
+        .publish {
+            background: #059669;
+            color: white;
+        }
+
+        .publish:hover {
+            background: #047857;
+        }
 
         .view {
-
             background: #f1f5f9;
-
             color: #334155;
         }
 
-
         .delete {
-
             background: #fef2f2;
-
             color: #b42318;
-
             border: 1px solid #fecaca;
         }
 
-
         .delete:hover {
-
             background: #fee2e2;
         }
 
-
         /* ================= EMPTY ================= */
-
         .empty {
-
             text-align: center;
-
             padding: 55px 20px;
-
             color: #667085;
         }
 
-
         .empty-icon {
-
             font-size: 45px;
-
             margin-bottom: 15px;
         }
 
-
         .empty h3 {
-
             color: #172033;
-
             margin-bottom: 8px;
         }
 
-
         /* ================= RESPONSIVE ================= */
-
         @media(max-width: 900px) {
-
             .sidebar {
-
                 width: 220px;
             }
 
-
             .main {
-
                 margin-left: 220px;
-
-                width:
-                    calc(100% - 220px);
-
+                width: calc(100% - 220px);
                 padding: 25px;
             }
 
-
             .stats {
-
                 grid-template-columns: 1fr;
             }
 
-
             .dataset-details {
-
-                grid-template-columns:
-                    repeat(2, 1fr);
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
-
         @media(max-width: 650px) {
-
             .sidebar {
-
                 display: none;
             }
 
-
             .main {
-
                 margin-left: 0;
-
                 width: 100%;
-
                 padding: 20px;
             }
 
-
             .top {
-
                 flex-direction: column;
-
                 align-items: flex-start;
-
                 gap: 20px;
             }
 
-
             .dataset-details {
-
                 grid-template-columns: 1fr;
             }
         }
-
     </style>
-
 </head>
-
 
 <body>
 
+    <div class="dashboard">
 
-<div class="dashboard">
-
-
-    <!-- ================= SIDEBAR ================= -->
-
-    <aside class="sidebar">
-
-        <div class="logo">
-
-            <h2>
-                DataMarket
-            </h2>
-
-            <small>
-                AI Dataset Marketplace
-            </small>
-
-        </div>
-
-
-        <nav class="nav">
-
-            <a
-                href="seller.html"
-                class="active"
-            >
-                🏠 Dashboard
-            </a>
-
-
-            <a href="upload.html">
-                ＋ Upload Dataset
-            </a>
-
-
-            <a href="seller.html">
-                ▣ My Datasets
-            </a>
-
-        </nav>
-
-
-        <div class="seller-info">
-
-            <strong>
-                Seller
-            </strong>
-
-            <span>
-                Dataset Creator
-            </span>
-
-        </div>
-
-    </aside>
-
-
-    <!-- ================= MAIN ================= -->
-
-    <main class="main">
-
-
-        <!-- HEADER -->
-
-        <div class="top">
-
-            <div>
-
-                <h1>
-                    Seller Dashboard
-                </h1>
-
-                <p>
-                    Manage your AI-analyzed
-                    datasets and marketplace listings.
-                </p>
-
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>DataMarket</h2>
+                <small>AI Dataset Marketplace</small>
             </div>
 
+            <nav class="nav">
+                <a href="seller.html" class="active">🏠 Dashboard</a>
+                <a href="upload.html">＋ Upload Dataset</a>
+                <a href="seller.html">▣ My Datasets</a>
+            </nav>
 
-            <a
-                href="upload.html"
-                class="upload-btn"
-            >
-                + Upload Dataset
-            </a>
+            <div class="seller-info">
+                <strong>Seller</strong>
+                <span>Dataset Creator</span>
+            </div>
+        </aside>
 
-        </div>
+        <!-- MAIN CONTENT -->
+        <main class="main">
 
-
-        <!-- ================= STATS ================= -->
-
-        <div class="stats">
-
-
-            <div class="stat">
-
-                <div class="stat-label">
-                    Total Datasets
+            <!-- HEADER -->
+            <div class="top">
+                <div>
+                    <h1>Seller Dashboard</h1>
+                    <p>Manage your AI-analyzed datasets and marketplace listings.</p>
                 </div>
-
-                <div
-                    class="stat-value"
-                    id="totalDatasets"
-                >
-                    0
-                </div>
-
+                <a href="upload.html" class="upload-btn">+ Upload Dataset</a>
             </div>
 
-
-            <div class="stat">
-
-                <div class="stat-label">
-                    Published
+            <!-- STATS -->
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-label">Total Datasets</div>
+                    <div class="stat-value" id="totalDatasets">0</div>
                 </div>
 
-                <div
-                    class="stat-value"
-                    id="publishedDatasets"
-                >
-                    0
+                <div class="stat">
+                    <div class="stat-label">Published</div>
+                    <div class="stat-value" id="publishedDatasets">0</div>
                 </div>
 
+                <div class="stat">
+                    <div class="stat-label">Marketplace Value</div>
+                    <div class="stat-value" id="totalValue">$0.00</div>
+                </div>
             </div>
 
-
-            <div class="stat">
-
-                <div class="stat-label">
-                    Marketplace Value
+            <!-- DATASETS LIST -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>My Datasets</h2>
+                    <button class="refresh" onclick="loadDatasets()">↻ Refresh</button>
                 </div>
 
-                <div
-                    class="stat-value"
-                    id="totalValue"
-                >
-                    $0
-                </div>
-
-            </div>
-
-
-        </div>
-
-
-        <!-- ================= DATASETS ================= -->
-
-        <section class="section">
-
-
-            <div class="section-header">
-
-                <h2>
-                    My Datasets
-                </h2>
-
-
-                <button
-                    class="refresh"
-                    onclick="loadDatasets()"
-                >
-                    ↻ Refresh
-                </button>
-
-            </div>
-
-
-            <div id="datasetList">
-
-                <div class="empty">
-
-                    <div class="empty-icon">
-                        📊
+                <div id="datasetList">
+                    <div class="empty">
+                        <div class="empty-icon">📊</div>
+                        <h3>Loading datasets...</h3>
                     </div>
-
-                    <h3>
-                        Loading datasets...
-                    </h3>
-
                 </div>
+            </section>
 
-            </div>
+        </main>
 
+    </div>
 
-        </section>
+    <script>
+        const API = "http://127.0.0.1:8000";
 
-
-    </main>
-
-
-</div>
-
-
-<script>
-
-
-/* ======================================================
-   API
-====================================================== */
-
-const API =
-    "http://127.0.0.1:8000";
-
-
-/* ======================================================
-   LOAD DATASETS
-====================================================== */
-
-async function loadDatasets() {
-
-    const list =
-        document.getElementById(
-            "datasetList"
-        );
-
-
-    try {
-
-        const response =
-            await fetch(
-                `${API}/datasets`
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.detail ||
-                "Unable to load datasets."
-            );
+        function escapeHtml(value) {
+            if (value === null || value === undefined) return "";
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
 
-
-        const datasets =
-            data.datasets || [];
-
-
-        /* ================= STATS ================= */
-
-        document.getElementById(
-            "totalDatasets"
-        ).textContent =
-            datasets.length;
-
-
-        const published =
-            datasets.filter(
-                dataset =>
-                    dataset.status === "published"
-            );
-
-
-        document.getElementById(
-            "publishedDatasets"
-        ).textContent =
-            published.length;
-
-
-        let totalValue = 0;
-
-
-        datasets.forEach(
-            dataset => {
-
-                totalValue +=
-                    Number(
-                        dataset.recommended_price || 0
-                    );
+        function getLocalPublishedStatus(id) {
+            try {
+                const publishedList = JSON.parse(localStorage.getItem("published_datasets") || "[]");
+                return publishedList.includes(String(id));
+            } catch (e) {
+                return false;
             }
-        );
-
-
-        document.getElementById(
-            "totalValue"
-        ).textContent =
-            `$${totalValue.toFixed(2)}`;
-
-
-        /* ================= EMPTY ================= */
-
-        if (datasets.length === 0) {
-
-            list.innerHTML = `
-
-                <div class="empty">
-
-                    <div class="empty-icon">
-                        📊
-                    </div>
-
-                    <h3>
-                        No datasets yet
-                    </h3>
-
-                    <p>
-                        Upload your first dataset
-                        to start analyzing and selling.
-                    </p>
-
-                </div>
-
-            `;
-
-            return;
         }
 
+        function setLocalPublishedStatus(id) {
+            try {
+                const publishedList = JSON.parse(localStorage.getItem("published_datasets") || "[]");
+                const strId = String(id);
+                if (!publishedList.includes(strId)) {
+                    publishedList.push(strId);
+                    localStorage.setItem("published_datasets", JSON.stringify(publishedList));
+                }
+            } catch (e) {
+                console.error("Storage error:", e);
+            }
+        }
 
-        /* ================= DATASET CARDS ================= */
+        async function loadDatasets() {
+            const list = document.getElementById("datasetList");
 
-        list.innerHTML =
-            datasets.map(
-                dataset => {
+            try {
+                const token =
+                    localStorage.getItem("access_token") ||
+                    localStorage.getItem("authToken");
 
-                    const statusClass =
-                        dataset.status === "published"
-                        ? "status"
-                        : "status waiting";
+                if (!token) {
+                    window.location.href = "index.html";
+                    return;
+                }
 
+                const response = await fetch(`${API}/seller/datasets`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
 
-                    const statusText =
-                        dataset.status === "published"
-                        ? "Published"
-                        : "Waiting for Publish";
+                const data = await response.json();
 
+                if (!response.ok) {
+                    throw new Error(data.detail || "Unable to load datasets.");
+                }
+
+                const datasets = data.datasets || [];
+
+                let publishedCount = 0;
+                let totalValue = 0;
+
+                datasets.forEach(dataset => {
+                    const id = dataset.dataset_id || dataset.id;
+                    const isPublishedLocally = getLocalPublishedStatus(id);
+
+                    if (String(dataset.status).toLowerCase() === "published" || isPublishedLocally) {
+                        dataset.status = "published";
+                        publishedCount++;
+                    }
+
+                    totalValue += Number(dataset.recommended_price ?? dataset.price ?? 0);
+                });
+
+                document.getElementById("totalDatasets").textContent = datasets.length;
+                document.getElementById("publishedDatasets").textContent = publishedCount;
+                document.getElementById("totalValue").textContent = `$${totalValue.toFixed(2)}`;
+
+                if (datasets.length === 0) {
+                    list.innerHTML = `
+                        <div class="empty">
+                            <div class="empty-icon">📊</div>
+                            <h3>No datasets yet</h3>
+                            <p>Upload your first dataset to start analyzing and selling.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                list.innerHTML = datasets.map(dataset => {
+                    const id = escapeHtml(dataset.dataset_id || dataset.id || "");
+                    const isPublished = String(dataset.status).toLowerCase() === "published" || getLocalPublishedStatus(id);
+                    const statusClass = isPublished ? "status" : "status waiting";
+                    const statusText = isPublished ? "Published" : "Waiting for Publish";
 
                     return `
-
                         <div class="dataset">
-
                             <div class="dataset-top">
-
                                 <div>
-
                                     <div class="dataset-name">
-
-                                        ${escapeHtml(
-                                            dataset.name || "Unnamed Dataset"
-                                        )}
-
+                                        ${escapeHtml(dataset.name || "Unnamed Dataset")}
                                     </div>
-
-
                                     <div class="dataset-file">
-
-                                        Original file:
-                                        ${escapeHtml(
-                                            dataset.original_filename || "-"
-                                        )}
-
-                                        <br>
-
-                                        Category:
-                                        ${escapeHtml(
-                                            dataset.category || "-"
-                                        )}
-
+                                        Original file: ${escapeHtml(dataset.original_filename || "-")}<br>
+                                        Category: ${escapeHtml(dataset.category || "-")}
                                     </div>
-
                                 </div>
-
-
-                                <span
-                                    class="${statusClass}"
-                                >
-                                    ${statusText}
-                                </span>
-
+                                <span class="${statusClass}">${statusText}</span>
                             </div>
-
 
                             <div class="dataset-details">
-
-
                                 <div class="detail">
-
-                                    <span>
-                                        Original Rows
-                                    </span>
-
-                                    <strong>
-                                        ${dataset.original_rows ?? 0}
-                                    </strong>
-
+                                    <span>Original Rows</span>
+                                    <strong>${dataset.original_rows ?? 0}</strong>
                                 </div>
 
-
                                 <div class="detail">
-
-                                    <span>
-                                        Cleaned Rows
-                                    </span>
-
-                                    <strong>
-                                        ${dataset.cleaned_rows ?? 0}
-                                    </strong>
-
+                                    <span>Cleaned Rows</span>
+                                    <strong>${dataset.cleaned_rows ?? 0}</strong>
                                 </div>
 
-
                                 <div class="detail">
-
-                                    <span>
-                                        Quality
-                                    </span>
-
-                                    <strong>
-                                        ${dataset.quality_score ?? 0}%
-                                    </strong>
-
+                                    <span>Quality</span>
+                                    <strong>${dataset.quality_score ?? 0}%</strong>
                                 </div>
 
-
                                 <div class="detail">
-
-                                    <span>
-                                        AI Price
-                                    </span>
-
-                                    <strong>
-                                        $${Number(
-                                            dataset.recommended_price || 0
-                                        ).toFixed(2)}
-                                    </strong>
-
+                                    <span>AI Price</span>
+                                    <strong>$${Number(
+                                        dataset.predicted_price ??
+                                        dataset.recommended_price ??
+                                        dataset.price ??
+                                        0
+                                    ).toFixed(2)}</strong>
                                 </div>
-
-
                             </div>
-
 
                             <div class="dataset-actions">
-
-
-                                <button
-                                    class="action-btn download"
-                                    onclick="
-                                        downloadDataset(
-                                            '${dataset.dataset_id}'
-                                        )
-                                    "
-                                >
+                                ${!isPublished ? `
+                                    <button class="action-btn publish" onclick="publishDataset('${id}')">
+                                        🚀 Publish Now
+                                    </button>
+                                ` : ''}
+                                <button class="action-btn download" onclick="downloadDataset('${id}')">
                                     ⬇ Download Cleaned CSV
                                 </button>
-
-
-                                <button
-                                    class="action-btn view"
-                                    onclick="
-                                        viewAnalysis(
-                                            '${dataset.dataset_id}'
-                                        )
-                                    "
-                                >
+                                <button class="action-btn view" onclick="viewAnalysis('${id}')">
                                     👁 View Analysis
                                 </button>
-
-
-                                <button
-                                    class="action-btn delete"
-                                    onclick="
-                                        deleteDataset(
-                                            '${dataset.dataset_id}'
-                                        )
-                                    "
-                                >
+                                <button class="action-btn delete" onclick="deleteDataset('${id}')">
                                     🗑 Delete
                                 </button>
-
-
                             </div>
-
                         </div>
-
                     `;
+                }).join("");
 
-                }
-            ).join("");
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-
-        list.innerHTML = `
-
-            <div class="empty">
-
-                <div class="empty-icon">
-                    ⚠️
-                </div>
-
-                <h3>
-                    Unable to load datasets
-                </h3>
-
-                <p>
-                    Make sure the FastAPI backend
-                    is running on port 8000.
-                </p>
-
-            </div>
-
-        `;
-
-    }
-
-}
-
-
-/* ======================================================
-   DOWNLOAD
-====================================================== */
-
-function downloadDataset(id) {
-
-    window.open(
-        `${API}/download-cleaned/${id}`,
-        "_blank"
-    );
-
-}
-
-
-/* ======================================================
-   VIEW ANALYSIS
-====================================================== */
-
-async function viewAnalysis(id) {
-
-    try {
-
-        const response =
-            await fetch(
-                `${API}/dataset/${id}`
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                data.detail ||
-                "Unable to open dataset."
-            );
+            } catch (error) {
+                console.error(error);
+                list.innerHTML = `
+                    <div class="empty">
+                        <div class="empty-icon">⚠️</div>
+                        <h3>Unable to load datasets</h3>
+                        <p>Make sure the FastAPI backend is running on port 8000.</p>
+                    </div>
+                `;
+            }
         }
 
+        async function publishDataset(id) {
+        
+            const authToken =
+                localStorage.getItem("access_token") ||
+                localStorage.getItem("authToken");
+        
+            if (!authToken) {
+                alert("Please login first.");
+                return;
+            }
+        
+            if (!id) {
+                alert("Dataset ID not found.");
+                return;
+            }
+        
+            const sellerPrice =
+                prompt(
+                    "Enter your selling price (USD):",
+                    "4.00"
+                );
+        
+            if (sellerPrice === null) {
+                return;
+            }
+        
+            const price = Number(sellerPrice);
+        
+            if (!Number.isFinite(price)) {
+                alert("Please enter a valid price.");
+                return;
+            }
+        
+            if (price < 3 || price > 500) {
+                alert("Price must be between $3 and $500.");
+                return;
+            }
+        
+            const confirmed =
+                confirm(
+                    `Publish this dataset for $${price.toFixed(2)}?`
+                );
+        
+            if (!confirmed) {
+                return;
+            }
+        
+            try {
+            
+                const response =
+                    await fetch(
+                        `${API}/publish-dataset/${encodeURIComponent(id)}`,
+                        {
+                            method: "POST",
+                        
+                            headers: {
+                                "Authorization":
+                                    `Bearer ${authToken}`,
+                            
+                                "Content-Type":
+                                    "application/json"
+                            },
+                        
+                            body: JSON.stringify({
+                                seller_price: price
+                            })
+                        }
+                    );
+                    
+                const data =
+                    await response.json().catch(
+                        () => ({})
+                    );
+                    
+                if (!response.ok) {
+                    throw new Error(
+                        data.detail ||
+                        "Failed to publish dataset."
+                    );
+                }
+            
+                setLocalPublishedStatus(id);
+            
+                alert(
+                    "Dataset published successfully!"
+                );
+            
+                await loadDatasets();
+            
+            } catch (error) {
+            
+                console.error(
+                    "Publish Error:",
+                    error
+                );
+            
+                alert(
+                    error.message ||
+                    "Unable to publish dataset."
+                );
+            }
+        }
+        async function downloadDataset(id) {
+            const token =
+                localStorage.getItem("access_token") ||
+                localStorage.getItem("authToken");
 
-        sessionStorage.setItem(
-            "analysisResult",
-            JSON.stringify(data)
-        );
+            if (!token) {
+                alert("Please login first.");
+                window.location.href = "index.html";
+                return;
+            }
 
+            try {
+                const response = await fetch(
+                    `${API}/download-cleaned/${encodeURIComponent(id)}`,
+                    { headers: { "Authorization": `Bearer ${token}` } }
+                );
 
-        window.location.href =
-            "analysis.html";
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-        alert(
-            error.message ||
-            "Unable to open analysis."
-        );
-
-    }
-
-}
-
-
-/* ======================================================
-   DELETE DATASET
-====================================================== */
-
-async function deleteDataset(id) {
-
-
-    const confirmed =
-        confirm(
-
-            "Are you sure you want to delete this dataset?\n\n" +
-
-            "The original file, cleaned CSV and marketplace " +
-
-            "listing will be permanently removed."
-
-        );
-
-
-    if (!confirmed) {
-
-        return;
-    }
-
-
-    try {
-
-        const response =
-            await fetch(
-
-                `${API}/delete-dataset/${id}`,
-
-                {
-                    method: "DELETE"
+                if (!response.ok) {
+                    const data = await response.json().catch(() => ({}));
+                    throw new Error(data.detail || "Unable to download dataset.");
                 }
 
-            );
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "cleaned_dataset.csv";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
 
-
-        const data =
-            await response.json();
-
-
-        if (!response.ok) {
-
-            throw new Error(
-
-                data.detail ||
-                "Unable to delete dataset."
-
-            );
-
+            } catch (error) {
+                console.error(error);
+                alert(error.message || "Unable to download dataset.");
+            }
         }
 
+        async function viewAnalysis(id) {
+            try {
+                const response = await fetch(`${API}/dataset/${id}`);
+                const data = await response.json();
 
-        alert(
-            "Dataset deleted successfully."
-        );
+                if (!response.ok) {
+                    throw new Error(data.detail || "Unable to open dataset.");
+                }
 
+                sessionStorage.setItem("analysisResult", JSON.stringify(data));
+                window.location.href = "analysis.html";
+            } catch (error) {
+                console.error(error);
+                alert(error.message || "Unable to open analysis.");
+            }
+        }
 
-        loadDatasets();
+        async function deleteDataset(id) {
+            const confirmed = confirm("Are you sure you want to delete this dataset?");
+            if (!confirmed) return;
 
-    }
+            const token =
+                localStorage.getItem("access_token") ||
+                localStorage.getItem("authToken");
 
-    catch (error) {
+            if (!token) {
+                alert("Please login first.");
+                window.location.href = "index.html";
+                return;
+            }
 
-        console.error(error);
+            try {
+                const response = await fetch(
+                    `${API}/delete-dataset/${encodeURIComponent(id)}`,
+                    {
+                        method: "DELETE",
+                        headers: { "Authorization": `Bearer ${token}` }
+                    }
+                );
 
+                const data = await response.json().catch(() => ({}));
 
-        alert(
+                if (!response.ok) {
+                    throw new Error(data.detail || "Unable to delete dataset.");
+                }
 
-            error.message ||
-            "Unable to delete dataset."
+                let publishedList = JSON.parse(
+                    localStorage.getItem("published_datasets") || "[]"
+                );
 
-        );
+                publishedList = publishedList.filter(
+                    item => item !== String(id)
+                );
 
-    }
+                localStorage.setItem(
+                    "published_datasets",
+                    JSON.stringify(publishedList)
+                );
 
-}
+                alert("Dataset deleted successfully.");
+                await loadDatasets();
 
+            } catch (error) {
+                console.error(error);
+                alert(error.message || "Unable to delete dataset.");
+            }
+        }
 
-/* ======================================================
-   ESCAPE HTML
-====================================================== */
-
-function escapeHtml(value) {
-
-    return String(value)
-
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-
-        .replace(
-            /</g,
-            "&lt;"
-        )
-
-        .replace(
-            />/g,
-            "&gt;"
-        )
-
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
-}
-
-
-/* ======================================================
-   START
-====================================================== */
-
-loadDatasets();
-
-
-</script>
-
+        document.addEventListener("DOMContentLoaded", loadDatasets);
+    </script>
 
 </body>
 

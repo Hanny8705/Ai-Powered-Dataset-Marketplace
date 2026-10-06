@@ -1,0 +1,11 @@
+customer_id,age,city,monthly_income,orders_last_6_months,avg_order_value,customer_rating,returned_orders,loyalty_member
+1001,24,Mumbai,32000,3,850,4.2,0,Yes
+1002,31,Pune,48000,7,1250,4.6,1,Yes
+1003,45,Nagpur,72000,12,2100,4.8,0,Yes
+1004,29,Nashik,41000,5,980,3.9,1,No
+1005,52,Mumbai,85000,15,2600,4.7,0,Yes
+1006,38,Pune,56000,9,1450,4.4,1,Yes
+1007,27,Nagpur,36000,4,760,3.8,2,No
+1008,41,Aurangabad,67000,11,1900,4.9,0,Yes
+1009,34,Nashik,45000,6,1120,4.1,1,No
+1010,49,Mumbai,79000,14,2350,4.6,0,Yes

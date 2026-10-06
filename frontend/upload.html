@@ -725,11 +725,34 @@ async function analyzeDataset() {
          It does NOT publish.
         */
 
+        /* =================================================
+           AUTHENTICATION
+           The backend protects /analyze-dataset, so the
+           currently logged-in seller token must be sent.
+        ================================================= */
+
+        const token =
+            localStorage.getItem("authToken");
+
+        if (!token) {
+
+            throw new Error(
+                "Login session not found. Please login again."
+            );
+        }
+
+
         const response =
             await fetch(
                 `${API}/analyze-dataset`,
                 {
                     method: "POST",
+
+                    headers: {
+                        "Authorization":
+                            `Bearer ${token}`
+                    },
+
                     body: formData
                 }
             );
@@ -760,6 +783,25 @@ async function analyzeDataset() {
 
 
         if (!response.ok) {
+
+            if (response.status === 401) {
+
+                localStorage.removeItem("authToken");
+                localStorage.removeItem("userRole");
+                localStorage.removeItem("currentUser");
+
+                throw new Error(
+                    "Your login session is invalid or expired. Please login again."
+                );
+            }
+
+            if (response.status === 403) {
+
+                throw new Error(
+                    data.detail ||
+                    "Seller account required."
+                );
+            }
 
             throw new Error(
                 data.detail ||
@@ -807,8 +849,25 @@ async function analyzeDataset() {
         );
 
         showError(
-            error.message
+            error.message ||
+            "Something went wrong while analyzing the dataset."
         );
+
+        if (
+            error.message &&
+            (
+                error.message.includes("Login session not found") ||
+                error.message.includes("invalid or expired")
+            )
+        ) {
+
+            setTimeout(
+                function() {
+                    window.location.href = "index.html";
+                },
+                1200
+            );
+        }
 
     }
 

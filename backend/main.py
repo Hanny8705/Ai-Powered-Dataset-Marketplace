@@ -1,50 +1,70 @@
-from fastapi import (
-    FastAPI,
-    UploadFile,
-    File,
-    HTTPException,
-    Depends,
-    Header,
-)
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Header
+
 from fastapi.middleware.cors import CORSMiddleware
+
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, EmailStr
+
+from pydantic import BaseModel
+
 from typing import Optional
+
 from pathlib import Path
+
 from datetime import datetime, timezone
+
 import hashlib
+
 import secrets
+
 import hmac
+
 import os
+
 import io
+
 import json
+
 import re
+
+import sqlite3
 
 import pandas as pd
 
 
+
 # ============================================================
+
 # APP
+
 # ============================================================
 
-app = FastAPI(
-    title="DataMarket API",
-    version="3.0.0",
-)
 
+
+app = FastAPI(title="DataMarket API", version="4.0.0")
 
 app.add_middleware(
+
     CORSMiddleware,
+
     allow_origins=["*"],
+
     allow_credentials=True,
+
     allow_methods=["*"],
+
     allow_headers=["*"],
+
 )
 
 
+
 # ============================================================
-# DIRECTORIES
+
+# DIRECTORIES / DATABASE
+
 # ============================================================
+
+
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -54,60 +74,231 @@ ORIGINAL_DIR = DATA_DIR / "original"
 
 CLEANED_DIR = DATA_DIR / "cleaned"
 
+DB_PATH = DATA_DIR / "datamarket.db"
 
-ORIGINAL_DIR.mkdir(
-    parents=True,
-    exist_ok=True,
-)
 
-CLEANED_DIR.mkdir(
-    parents=True,
-    exist_ok=True,
-)
+
+ORIGINAL_DIR.mkdir(parents=True, exist_ok=True)
+
+CLEANED_DIR.mkdir(parents=True, exist_ok=True)
+
+
+
+
+
+def db():
+
+    conn = sqlite3.connect(DB_PATH)
+
+    conn.row_factory = sqlite3.Row
+
+    conn.execute("PRAGMA foreign_keys = ON")
+
+    return conn
+
+
+
+
+
+def init_db():
+
+    conn = db()
+
+    conn.executescript(
+
+        """
+
+        CREATE TABLE IF NOT EXISTS users (
+
+            id TEXT PRIMARY KEY,
+
+            name TEXT NOT NULL,
+
+            email TEXT NOT NULL UNIQUE,
+
+            role TEXT NOT NULL CHECK(role IN ('buyer','seller')),
+
+            password_hash TEXT NOT NULL,
+
+            wallet_address TEXT,
+
+            created_at TEXT NOT NULL
+
+        );
+
+
+
+        CREATE TABLE IF NOT EXISTS sessions (
+
+            token TEXT PRIMARY KEY,
+
+            user_id TEXT NOT NULL,
+
+            created_at TEXT NOT NULL,
+
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+
+        );
+
+
+
+        CREATE TABLE IF NOT EXISTS datasets (
+
+            id TEXT PRIMARY KEY,
+
+            seller_id TEXT NOT NULL,
+
+            seller_name TEXT NOT NULL,
+
+            seller_email TEXT NOT NULL,
+
+            name TEXT NOT NULL,
+
+            category TEXT NOT NULL,
+
+            rows_count INTEGER NOT NULL,
+
+            columns_count INTEGER NOT NULL,
+
+            quality_score REAL NOT NULL,
+
+            predicted_price REAL NOT NULL,
+            seller_price REAL,
+
+            analysis TEXT NOT NULL,
+
+            cleaning_stats TEXT NOT NULL,
+
+            file_hash TEXT NOT NULL,
+
+            dataset_hash TEXT NOT NULL,
+
+            original_path TEXT NOT NULL,
+
+            cleaned_path TEXT NOT NULL,
+
+            cleaned_filename TEXT NOT NULL,
+
+            status TEXT NOT NULL,
+
+            created_at TEXT NOT NULL,
+
+            published_at TEXT,
+
+            FOREIGN KEY(seller_id) REFERENCES users(id) ON DELETE CASCADE
+
+        );
+
+
+
+        CREATE INDEX IF NOT EXISTS idx_datasets_seller ON datasets(seller_id);
+
+        CREATE INDEX IF NOT EXISTS idx_datasets_status ON datasets(status);
+
+        CREATE INDEX IF NOT EXISTS idx_datasets_hashes ON datasets(file_hash, dataset_hash);
+
+
+
+        CREATE TABLE IF NOT EXISTS purchases (
+
+            id TEXT PRIMARY KEY,
+
+            dataset_id TEXT,
+
+            dataset_name TEXT NOT NULL,
+
+            buyer_id TEXT NOT NULL,
+
+            buyer_name TEXT NOT NULL,
+
+            buyer_email TEXT NOT NULL,
+
+            seller_id TEXT NOT NULL,
+
+            seller_name TEXT NOT NULL,
+
+            price REAL NOT NULL,
+
+            currency TEXT NOT NULL,
+
+            wallet_address TEXT,
+
+            transaction_hash TEXT,
+
+            status TEXT NOT NULL,
+
+            purchased_at TEXT NOT NULL,
+
+            dataset_deleted INTEGER NOT NULL DEFAULT 0,
+
+            FOREIGN KEY(buyer_id) REFERENCES users(id) ON DELETE CASCADE
+
+        );
+
+
+
+        CREATE INDEX IF NOT EXISTS idx_purchases_buyer ON purchases(buyer_id);
+
+        CREATE INDEX IF NOT EXISTS idx_purchases_seller ON purchases(seller_id);
+
+        CREATE INDEX IF NOT EXISTS idx_purchases_dataset ON purchases(dataset_id);
+
+        """
+
+    )
+
+    conn.commit()
+
+    conn.close()
+
+
+
+
+
+init_db()
+
 
 
 # ============================================================
-# MEMORY DATABASE
-# ============================================================
 
-users = {}
-
-sessions = {}
-
-pending_datasets = {}
-
-datasets = {}
-
-purchases = {}
-
-
-# ============================================================
 # MODELS
+
 # ============================================================
+
+
 
 class RegisterRequest(BaseModel):
 
     name: str
 
-    email: EmailStr
+    email: str
 
     password: str
 
     role: str
+
+
+
 
 
 class LoginRequest(BaseModel):
 
-    email: EmailStr
+    email: str
 
     password: str
 
     role: str
+
+
+
 
 
 class WalletRequest(BaseModel):
 
     wallet_address: str
+
+
+
 
 
 class PurchaseRequest(BaseModel):
@@ -117,76 +308,67 @@ class PurchaseRequest(BaseModel):
     transaction_hash: Optional[str] = None
 
     wallet_address: Optional[str] = None
+class PublishRequest(BaseModel):
+    seller_price: float
 
 
 # ============================================================
+
 # HELPERS
+
 # ============================================================
+
+
 
 def now():
 
-    return datetime.now(
-        timezone.utc
-    ).isoformat()
+    return datetime.now(timezone.utc).isoformat()
+
+
+
 
 
 def normalize_email(email):
 
-    return (
-        str(email)
-        .strip()
-        .lower()
-    )
+    return str(email).strip().lower()
+
+
+
 
 
 def normalize_role(role):
 
-    role = (
-        role
-        .strip()
-        .lower()
-    )
+    role = str(role).strip().lower()
 
-    if role not in {
-        "buyer",
-        "seller",
-    }:
+    if role not in {"buyer", "seller"}:
 
-        raise HTTPException(
-            status_code=400,
-            detail="Role must be buyer or seller.",
-        )
+        raise HTTPException(status_code=400, detail="Role must be buyer or seller.")
 
     return role
 
 
+
+
+
 def new_id(prefix):
 
-    return (
-        prefix
-        + "_"
-        + secrets.token_hex(8)
-    )
+    return prefix + "_" + secrets.token_hex(8)
+
+
+
 
 
 def safe_filename(filename):
 
-    filename = Path(
-        filename or "dataset"
-    ).name
+    filename = Path(filename or "dataset").name
 
-    filename = re.sub(
-        r"[^a-zA-Z0-9._-]",
-        "_",
-        filename,
-    )
+    filename = re.sub(r"[^a-zA-Z0-9._-]", "_", filename)
 
     return filename or "dataset"
 
 
-# ============================================================
-# PASSWORD
-# ============================================================
+
+
 
 def hash_password(password):
 
@@ -194,979 +376,621 @@ def hash_password(password):
 
     iterations = 310000
 
-    digest = hashlib.pbkdf2_hmac(
-        "sha256",
-        password.encode(),
-        salt,
-        iterations,
-    )
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, iterations)
 
-    return (
-        f"pbkdf2_sha256$"
-        f"{iterations}$"
-        f"{salt.hex()}$"
-        f"{digest.hex()}"
-    )
+    return f"pbkdf2_sha256${iterations}${salt.hex()}${digest.hex()}"
 
 
-def verify_password(
-    password,
-    stored,
-):
+
+
+
+def verify_password(password, stored):
 
     try:
 
-        algorithm, iterations, salt, expected = (
-            stored.split("$")
-        )
+        algorithm, iterations, salt, expected = stored.split("$")
 
         if algorithm != "pbkdf2_sha256":
 
             return False
 
         actual = hashlib.pbkdf2_hmac(
-            "sha256",
-            password.encode(),
-            bytes.fromhex(salt),
-            int(iterations),
+
+            "sha256", password.encode(), bytes.fromhex(salt), int(iterations)
+
         )
 
-        return hmac.compare_digest(
-            actual.hex(),
-            expected,
-        )
+        return hmac.compare_digest(actual.hex(), expected)
 
     except Exception:
 
         return False
 
 
-# ============================================================
-# PUBLIC USER
-# ============================================================
+
+
+
+def row_to_user(row):
+
+    return dict(row) if row else None
+
+
+
+
 
 def public_user(user):
 
     return {
+
         "id": user["id"],
+
         "name": user["name"],
+
         "email": user["email"],
+
         "role": user["role"],
-        "wallet_address":
-            user.get("wallet_address"),
-        "created_at":
-            user["created_at"],
+
+        "wallet_address": user.get("wallet_address"),
+
+        "created_at": user["created_at"],
+
     }
 
 
-# ============================================================
-# AUTH
-# ============================================================
+
+
 
 def create_session(user_id):
 
     token = secrets.token_urlsafe(48)
 
-    sessions[token] = {
-        "user_id": user_id,
-        "created_at": now(),
-    }
+    conn = db()
+
+    conn.execute(
+
+        "INSERT INTO sessions(token,user_id,created_at) VALUES(?,?,?)",
+
+        (token, user_id, now()),
+
+    )
+
+    conn.commit()
+
+    conn.close()
 
     return token
 
 
-def current_user(
-    authorization:
-    Optional[str] = Header(None),
-):
+
+
+
+def current_user(authorization: Optional[str] = Header(None)):
 
     if not authorization:
 
-        raise HTTPException(
-            status_code=401,
-            detail="Authorization token required.",
-        )
+        raise HTTPException(status_code=401, detail="Authorization token required.")
+
+    if not authorization.lower().startswith("bearer "):
+
+        raise HTTPException(status_code=401, detail="Invalid authorization format.")
+
+    token = authorization.split(" ", 1)[1].strip()
+
+    conn = db()
+
+    row = conn.execute(
+
+        "SELECT u.* FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token=?",
+
+        (token,),
+
+    ).fetchone()
+
+    conn.close()
+
+    if not row:
+
+        raise HTTPException(status_code=401, detail="Invalid or expired session.")
+
+    return dict(row)
 
 
-    if not authorization.lower().startswith(
-        "bearer "
-    ):
-
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid authorization format.",
-        )
 
 
-    token = authorization.split(
-        " ",
-        1,
-    )[1].strip()
 
-
-    session = sessions.get(
-        token
-    )
-
-
-    if not session:
-
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired session.",
-        )
-
-
-    user = users.get(
-        session["user_key"]
-    )
-
-
-    if not user:
-
-        raise HTTPException(
-            status_code=401,
-            detail="User not found.",
-        )
-
-
-    return user
-
-
-def require_role(
-    user,
-    role,
-):
+def require_role(user, role):
 
     if user["role"] != role:
 
-        raise HTTPException(
-            status_code=403,
-            detail=f"{role.capitalize()} account required.",
-        )
+        raise HTTPException(status_code=403, detail=f"{role.capitalize()} account required.")
 
     return user
 
 
-# ============================================================
-# REGISTER
+
+
+
+def dataset_from_row(row):
+
+    item = dict(row)
+
+    item["rows"] = item.pop("rows_count")
+
+    item["columns"] = item.pop("columns_count")
+
+    item["cleaning_stats"] = json.loads(item["cleaning_stats"])
+
+    return item
+
+
+
+
+
+def public_dataset(item):
+
+    if isinstance(item, sqlite3.Row):
+
+        item = dataset_from_row(item)
+
+    elif "rows_count" in item:
+
+        item = dict(item)
+
+        item["rows"] = item.pop("rows_count")
+
+        item["columns"] = item.pop("columns_count")
+
+        if isinstance(item.get("cleaning_stats"), str):
+
+            item["cleaning_stats"] = json.loads(item["cleaning_stats"])
+
+    return {
+
+        "id": item["id"],
+
+        "name": item["name"],
+
+        "category": item["category"],
+
+        "rows": item["rows"],
+
+        "columns": item["columns"],
+
+        "quality_score": item["quality_score"],
+
+        "predicted_price": item["predicted_price"],
+        "seller_price": item.get("seller_price"),
+        "price": (
+            item["seller_price"]
+            if item.get("seller_price") is not None
+            else item["predicted_price"]
+        ),
+
+        "analysis": item["analysis"],
+
+        "cleaning_stats": item["cleaning_stats"],
+
+        "status": item["status"],
+
+        "seller": item["seller_name"],
+
+        "seller_id": item["seller_id"],
+
+        "created_at": item["created_at"],
+
+        "published_at": item.get("published_at"),
+
+    }
+
+
+
 # ============================================================
 
+# AUTH
+
+# ============================================================
+
+
+
 @app.post("/register")
-def register(
-    request: RegisterRequest,
-):
+
+def register(request: RegisterRequest):
 
     name = request.name.strip()
 
-    email = normalize_email(
-        request.email
-    )
+    email = normalize_email(request.email)
 
-    role = normalize_role(
-        request.role
-    )
+    role = normalize_role(request.role)
 
     password = request.password
 
 
+
+    if not re.fullmatch(r"[^@\s]+@[^@\s]+", email):
+
+        raise HTTPException(status_code=400, detail="Enter an email/username in name@domain format without spaces.")
+
     if len(name) < 2:
 
-        raise HTTPException(
-            status_code=400,
-            detail="Name must contain at least 2 characters.",
-        )
-
+        raise HTTPException(status_code=400, detail="Name must contain at least 2 characters.")
 
     if len(password) < 6:
 
+        raise HTTPException(status_code=400, detail="Password must contain at least 6 characters.")
+
+
+
+    conn = db()
+
+    existing = conn.execute("SELECT id FROM users WHERE email=?", (email,)).fetchone()
+
+    if existing:
+
+        conn.close()
+
         raise HTTPException(
-            status_code=400,
-            detail="Password must contain at least 6 characters.",
+
+            status_code=409,
+
+            detail="This email is already registered. Please use the same role to log in or use a different email.",
+
         )
 
 
-    # ========================================================
-    # IMPORTANT:
-    #
-    # EMAIL MUST BE UNIQUE GLOBALLY.
-    #
-    # seller@gmail.com -> seller ONLY
-    # buyer@gmail.com  -> buyer ONLY
-    #
-    # Same email cannot create another role.
-    # ========================================================
 
-    for existing_user in users.values():
-
-        if existing_user["email"] == email:
-
-            raise HTTPException(
-                status_code=409,
-                detail=(
-                    "This email is already registered. "
-                    "Please use a different email for "
-                    "your Buyer or Seller account."
-                ),
-            )
-
-
-    user_id = new_id(
-        "user"
-    )
-
-
-    # Internal unique key
-
-    user_key = user_id
-
+    user_id = new_id("user")
 
     user = {
 
-        "id":
-            user_id,
+        "id": user_id,
 
-        "name":
-            name,
+        "name": name,
 
-        "email":
-            email,
+        "email": email,
 
-        "role":
-            role,
+        "role": role,
 
-        "password_hash":
-            hash_password(password),
+        "password_hash": hash_password(password),
 
-        "wallet_address":
-            None,
+        "wallet_address": None,
 
-        "created_at":
-            now(),
+        "created_at": now(),
 
     }
 
+    conn.execute(
 
-    users[user_key] = user
+        "INSERT INTO users(id,name,email,role,password_hash,wallet_address,created_at) VALUES(?,?,?,?,?,?,?)",
+
+        (user_id, name, email, role, user["password_hash"], None, user["created_at"]),
+
+    )
+
+    conn.commit()
+
+    conn.close()
+
+    return {"message": "Account created successfully.", "user": public_user(user)}
 
 
-    return {
-
-        "message":
-            "Account created successfully.",
-
-        "user":
-            public_user(user),
-
-    }
 
 
-# ============================================================
-# LOGIN
-# ============================================================
 
 @app.post("/login")
-def login(
-    request: LoginRequest,
-):
 
-    email = normalize_email(
-        request.email
-    )
+def login(request: LoginRequest):
 
-    role = normalize_role(
-        request.role
-    )
+    email = normalize_email(request.email)
 
+    role = normalize_role(request.role)
 
-    # --------------------------------------------------------
-    # Find exact email
-    # --------------------------------------------------------
+    conn = db()
 
-    user_key = None
+    row = conn.execute("SELECT * FROM users WHERE email=?", (email,)).fetchone()
 
-    user = None
+    conn.close()
 
+    if not row:
 
-    for key, existing_user in users.items():
+        raise HTTPException(status_code=401, detail="No account found with this email.")
 
-        if existing_user["email"] == email:
-
-            user_key = key
-
-            user = existing_user
-
-            break
-
-
-    if not user:
-
-        raise HTTPException(
-            status_code=401,
-            detail="No account found with this email.",
-        )
-
-
-    # --------------------------------------------------------
-    # Role must match account role
-    # --------------------------------------------------------
+    user = dict(row)
 
     if user["role"] != role:
 
         raise HTTPException(
+
             status_code=401,
-            detail=(
-                f"This email belongs to a "
-                f"{user['role']} account. "
-                f"Please select {user['role']}."
-            ),
+
+            detail=f"This email belongs to a {user['role']} account. Please select {user['role']}.",
+
         )
 
+    if not verify_password(request.password, user["password_hash"]):
 
-    # --------------------------------------------------------
-    # Password
-    # --------------------------------------------------------
+        raise HTTPException(status_code=401, detail="Incorrect password.")
 
-    if not verify_password(
-        request.password,
-        user["password_hash"],
-    ):
-
-        raise HTTPException(
-            status_code=401,
-            detail="Incorrect password.",
-        )
-
-
-    # Store internal key for session
-
-    user["session_key"] = user_key
-
-
-    token = create_session(
-        user_key
-    )
-
+    token = create_session(user["id"])
 
     return {
 
-        "message":
-            "Login successful.",
+        "message": "Login successful.",
 
-        "token":
-            token,
+        "token": token,
 
-        "user":
-            public_user(user),
+        "access_token": token,
+
+        "user": public_user(user),
 
     }
 
 
-# ============================================================
-# LOGOUT
-# ============================================================
+
+
 
 @app.post("/logout")
-def logout(
-    authorization:
-    Optional[str] = Header(None),
-):
 
-    if authorization:
+def logout(authorization: Optional[str] = Header(None)):
 
-        try:
+    if authorization and authorization.lower().startswith("bearer "):
 
-            token = authorization.split(
-                " ",
-                1,
-            )[1]
+        token = authorization.split(" ", 1)[1].strip()
 
-            sessions.pop(
-                token,
-                None,
-            )
+        conn = db()
 
-        except Exception:
+        conn.execute("DELETE FROM sessions WHERE token=?", (token,))
 
-            pass
+        conn.commit()
+
+        conn.close()
+
+    return {"message": "Logged out successfully."}
 
 
-    return {
-        "message":
-            "Logged out successfully."
-    }
 
 
-# ============================================================
-# ME
-# ============================================================
 
 @app.get("/me")
-def me(
-    user=Depends(current_user),
-):
 
-    return {
-        "user":
-            public_user(user)
-    }
+def me(user=Depends(current_user)):
+
+    return {"user": public_user(user)}
 
 
-# ============================================================
-# WALLET
-# ============================================================
+
+
 
 @app.post("/wallet")
-def wallet(
-    request: WalletRequest,
-    user=Depends(current_user),
-):
 
-    address = (
-        request.wallet_address
-        .strip()
-    )
+def wallet(request: WalletRequest, user=Depends(current_user)):
 
+    address = request.wallet_address.strip()
 
     if len(address) < 10:
 
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid wallet address.",
-        )
+        raise HTTPException(status_code=400, detail="Invalid wallet address.")
 
+    conn = db()
 
-    user["wallet_address"] = address
+    conn.execute("UPDATE users SET wallet_address=? WHERE id=?", (address, user["id"]))
 
+    conn.commit()
 
-    return {
+    conn.close()
 
-        "message":
-            "Wallet connected successfully.",
+    return {"message": "Wallet connected successfully.", "wallet_address": address}
 
-        "wallet_address":
-            address,
-
-    }
 
 
 # ============================================================
-# DATAFRAME
+
+# DATAFRAME / AI-LIKE ANALYSIS
+
 # ============================================================
 
-def read_dataframe(
-    filename,
-    content,
-):
 
-    extension = Path(
-        filename
-    ).suffix.lower()
 
+def read_dataframe(filename, content):
+
+    extension = Path(filename).suffix.lower()
 
     try:
 
         if extension == ".csv":
 
-            return pd.read_csv(
-                io.BytesIO(content)
-            )
+            return pd.read_csv(io.BytesIO(content))
 
+        if extension in {".xlsx", ".xls"}:
 
-        if extension in {
-            ".xlsx",
-            ".xls",
-        }:
-
-            return pd.read_excel(
-                io.BytesIO(content)
-            )
-
+            return pd.read_excel(io.BytesIO(content))
 
         if extension == ".json":
 
-            return pd.DataFrame(
-                json.loads(
-                    content.decode()
-                )
-            )
-
+            return pd.DataFrame(json.loads(content.decode()))
 
     except Exception as error:
 
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                "Could not read dataset: "
-                + str(error)
-            ),
-        )
+        raise HTTPException(status_code=400, detail="Could not read dataset: " + str(error))
+
+    raise HTTPException(status_code=400, detail="Supported formats: CSV, XLSX, XLS, JSON.")
 
 
-    raise HTTPException(
-        status_code=400,
-        detail=(
-            "Supported formats: "
-            "CSV, XLSX, XLS, JSON."
-        ),
-    )
 
 
-# ============================================================
-# NORMALIZE DATASET
-# ============================================================
 
 def normalized_dataframe(df):
 
     work = df.copy()
 
-
-    work.columns = [
-        str(c)
-        .strip()
-        .lower()
-        .replace(" ", "_")
-        for c in work.columns
-    ]
-
+    work.columns = [str(c).strip().lower().replace(" ", "_") for c in work.columns]
 
     for column in work.columns:
 
         work[column] = (
-            work[column]
-            .fillna("")
-            .astype(str)
-            .str.strip()
-            .str.lower()
-            .str.replace(
-                r"\s+",
-                " ",
-                regex=True,
-            )
+
+            work[column].fillna("").astype(str).str.strip().str.lower().str.replace(r"\s+", " ", regex=True)
+
         )
 
+    work = work.dropna(how="all")
 
-    work = work.dropna(
-        how="all"
-    )
-
-
-    work = work.reindex(
-        sorted(
-            work.columns
-        ),
-        axis=1,
-    )
-
+    work = work.reindex(sorted(work.columns), axis=1)
 
     try:
 
-        work = work.sort_values(
-            by=list(
-                work.columns
-            )
-        )
+        work = work.sort_values(by=list(work.columns))
 
     except Exception:
 
         pass
 
+    return work.reset_index(drop=True)
 
-    return work.reset_index(
-        drop=True
-    )
+
+
 
 
 def dataset_hash(df):
 
-    normalized = normalized_dataframe(df)
+    text = normalized_dataframe(df).to_csv(index=False)
+
+    return hashlib.sha256(text.encode()).hexdigest()
 
 
-    text = normalized.to_csv(
-        index=False
-    )
 
-
-    return hashlib.sha256(
-        text.encode()
-    ).hexdigest()
 
 
 def file_hash(content):
 
-    return hashlib.sha256(
-        content
-    ).hexdigest()
+    return hashlib.sha256(content).hexdigest()
 
 
-# ============================================================
-# CLEAN
-# ============================================================
+
+
 
 def clean_dataset(df):
-
     cleaned = df.copy()
-
-
-    original_rows = len(
-        cleaned
-    )
-
-
-    original_columns = len(
-        cleaned.columns
-    )
-
-
-    # Column names
+    original_rows = len(cleaned)
+    original_columns = len(cleaned.columns)
 
     names = []
-
     used = {}
-
-
-    for index, column in enumerate(
-        cleaned.columns
-    ):
-
-        name = str(
-            column
-        ).strip()
-
-
-        name = re.sub(
-            r"\s+",
-            "_",
-            name,
-        )
-
-
-        name = re.sub(
-            r"[^a-zA-Z0-9_]",
-            "_",
-            name,
-        )
-
-
-        name = name.strip("_")
-
-
+    for index, column in enumerate(cleaned.columns):
+        name = str(column).strip()
+        name = re.sub(r"\s+", "_", name)
+        name = re.sub(r"[^a-zA-Z0-9_]", "_", name).strip("_")
         if not name:
-
-            name = (
-                f"column_{index + 1}"
-            )
-
-
-        count = used.get(
-            name,
-            0,
-        )
-
-
+            name = f"column_{index + 1}"
+        count = used.get(name, 0)
         if count:
-
-            name = (
-                f"{name}_{count + 1}"
-            )
-
-
+            name = f"{name}_{count + 1}"
         used[name] = count + 1
-
         names.append(name)
-
-
     cleaned.columns = names
 
-
-    # Empty rows/columns
-
-    cleaned = cleaned.dropna(
-        how="all"
-    )
-
-    cleaned = cleaned.dropna(
-        axis=1,
-        how="all"
-    )
-
-
-    # Trim strings
+    rows_before = len(cleaned)
+    cols_before = len(cleaned.columns)
+    cleaned = cleaned.dropna(how="all")
+    empty_rows_removed = rows_before - len(cleaned)
+    cleaned = cleaned.dropna(axis=1, how="all")
+    empty_columns_removed = cols_before - len(cleaned.columns)
 
     for column in cleaned.columns:
-
-        if (
-            cleaned[column].dtype
-            == "object"
-        ):
-
-            cleaned[column] = (
-                cleaned[column]
-                .apply(
-                    lambda value:
-                    value.strip()
-                    if isinstance(
-                        value,
-                        str,
-                    )
-                    else value
-                )
+        if cleaned[column].dtype == "object":
+            cleaned[column] = cleaned[column].apply(
+                lambda value: value.strip() if isinstance(value, str) else value
             )
 
+    # Convert numeric-looking text to numbers while preserving decimal values.
+    for column in cleaned.columns:
+        if cleaned[column].dtype == "object":
+            non_empty = cleaned[column].dropna().astype(str).str.strip()
+            if len(non_empty) > 0:
+                numeric_values = pd.to_numeric(non_empty, errors="coerce")
+                if numeric_values.notna().mean() >= 0.90:
+                    cleaned[column] = pd.to_numeric(cleaned[column], errors="coerce")
 
-    # Duplicates
-
-    duplicates = int(
-        cleaned.duplicated()
-        .sum()
-    )
-
-
-    cleaned = (
-        cleaned
-        .drop_duplicates()
-    )
-
-
-    # Missing values
-
-    missing = int(
-        cleaned.isna()
-        .sum()
-        .sum()
-    )
-
+    duplicates = int(cleaned.duplicated().sum())
+    cleaned = cleaned.drop_duplicates()
+    missing_before = int(cleaned.isna().sum().sum())
 
     for column in cleaned.columns:
-
-        if (
-            cleaned[column]
-            .isna()
-            .sum()
-            == 0
-        ):
-
+        if cleaned[column].isna().sum() == 0:
             continue
-
-
-        if pd.api.types.is_numeric_dtype(
-            cleaned[column]
-        ):
-
-            value = (
-                cleaned[column]
-                .median()
-            )
-
-
+        if pd.api.types.is_numeric_dtype(cleaned[column]):
+            value = cleaned[column].median()
             if pd.isna(value):
-
                 value = 0
-
-
-            cleaned[column] = (
-                cleaned[column]
-                .fillna(value)
-            )
-
         else:
+            mode = cleaned[column].mode()
+            value = mode.iloc[0] if len(mode) else "Unknown"
+        cleaned[column] = cleaned[column].fillna(value)
 
-            mode = (
-                cleaned[column]
-                .mode()
-            )
-
-
-            value = (
-                mode.iloc[0]
-                if len(mode)
-                else "Unknown"
-            )
-
-
-            cleaned[column] = (
-                cleaned[column]
-                .fillna(value)
-            )
-
-
-    cleaned = cleaned.reset_index(
-        drop=True
-    )
-
+    missing_after = int(cleaned.isna().sum().sum())
+    cleaned = cleaned.reset_index(drop=True)
 
     return cleaned, {
-
-        "original_rows":
-            original_rows,
-
-        "cleaned_rows":
-            len(cleaned),
-
-        "original_columns":
-            original_columns,
-
-        "cleaned_columns":
-            len(cleaned.columns),
-
-        "duplicates_removed":
-            duplicates,
-
-        "missing_values_filled":
-            missing,
-
+        "original_rows": original_rows,
+        "cleaned_rows": len(cleaned),
+        "original_columns": original_columns,
+        "cleaned_columns": len(cleaned.columns),
+        "empty_rows_removed": empty_rows_removed,
+        "empty_columns_removed": empty_columns_removed,
+        "duplicates_removed": duplicates,
+        "missing_values_before": missing_before,
+        "missing_values_filled": missing_before - missing_after,
+        "missing_values_after": missing_after,
     }
 
+def category(filename, columns):
 
-# ============================================================
-# CATEGORY
-# ============================================================
-
-def category(
-    filename,
-    columns,
-):
-
-    text = (
-        filename.lower()
-        + " "
-        + " ".join(
-            str(c).lower()
-            for c in columns
-        )
-    )
-
+    text = filename.lower() + " " + " ".join(str(c).lower() for c in columns)
 
     mapping = {
 
-        "Finance": [
-            "finance",
-            "income",
-            "revenue",
-            "loan",
-            "credit",
-            "bank",
-            "transaction",
-        ],
+        "Finance": ["finance", "income", "revenue", "loan", "credit", "bank", "transaction"],
 
-        "Marketing": [
-            "marketing",
-            "campaign",
-            "lead",
-            "click",
-            "conversion",
-            "advertising",
-        ],
+        "Marketing": ["marketing", "campaign", "lead", "click", "conversion", "advertising"],
 
-        "Healthcare": [
-            "health",
-            "medical",
-            "patient",
-            "hospital",
-            "diagnosis",
-        ],
+        "Healthcare": ["health", "medical", "patient", "hospital", "diagnosis"],
 
-        "E-commerce": [
-            "order",
-            "product",
-            "purchase",
-            "customer",
-            "sales",
-            "cart",
-        ],
+        "E-commerce": ["order", "product", "purchase", "customer", "sales", "cart"],
 
-        "Education": [
-            "student",
-            "school",
-            "college",
-            "university",
-            "course",
-            "grade",
-        ],
+        "Education": ["student", "school", "college", "university", "course", "grade"],
 
-        "Technology": [
-            "software",
-            "server",
-            "device",
-            "computer",
-            "api",
-            "developer",
-        ],
+        "Technology": ["software", "server", "device", "computer", "api", "developer"],
 
     }
 
-
-    best = "General"
-
-    score = 0
-
+    best, score = "General", 0
 
     for name, words in mapping.items():
 
-        current = sum(
-            1
-            for word in words
-            if word in text
-        )
-
+        current = sum(1 for word in words if word in text)
 
         if current > score:
 
-            score = current
-
-            best = name
-
+            score, best = current, name
 
     return best
 
 
-# ============================================================
-# QUALITY
-# ============================================================
 
-def quality_score(
-    df,
-    stats,
-):
+
+
+def quality_score(df, stats):
 
     score = 100
 
+    total_cells = max(len(df) * max(len(df.columns), 1), 1)
 
-    total_cells = max(
-        len(df)
-        * max(len(df.columns), 1),
-        1,
-    )
+    missing_ratio = stats["missing_values_filled"] / total_cells
 
+    duplicate_ratio = stats["duplicates_removed"] / max(stats["original_rows"], 1)
 
-    missing_ratio = (
-        stats["missing_values_filled"]
-        /
-        total_cells
-    )
+    score -= min(30, missing_ratio * 100)
 
-
-    duplicate_ratio = (
-        stats["duplicates_removed"]
-        /
-        max(
-            stats["original_rows"],
-            1,
-        )
-    )
-
-
-    score -= min(
-        30,
-        missing_ratio * 100,
-    )
-
-
-    score -= min(
-        25,
-        duplicate_ratio * 100,
-    )
-
+    score -= min(25, duplicate_ratio * 100)
 
     if len(df) >= 100:
 
@@ -1176,286 +1000,194 @@ def quality_score(
 
         score += 3
 
-
     if len(df.columns) >= 5:
 
         score += 3
 
-
-    return max(
-        0,
-        min(
-            100,
-            round(score),
-        ),
-    )
+    return max(0, min(100, round(score)))
 
 
-# ============================================================
-# PRICE
-# ============================================================
-
-def predicted_price(
-    df,
-    quality,
-    category_name,
-):
-
-    price = 8
-
-    price += min(
-        45,
-        len(df) * .035
-    )
-
-    price += min(
-        25,
-        len(df.columns) * 2.5
-    )
-
-    price += (
-        quality * .22
-    )
 
 
-    bonuses = {
 
-        "Finance": 12,
+def predicted_price(df, quality, category_name):
+    rows = len(df)
+    columns = len(df.columns)
 
-        "Healthcare": 12,
-
-        "Marketing": 8,
-
-        "Technology": 8,
-
-        "E-commerce": 7,
-
-        "Education": 6,
-
-        "General": 2,
-
-    }
-
-
-    price += bonuses.get(
-        category_name,
-        2,
-    )
-
-
-    return round(
-        min(
-            499,
-            max(
-                9,
-                price,
-            ),
-        ),
-        2,
-    )
-
-
-# ============================================================
-# ANALYSIS
-# ============================================================
-
-def analysis_text(
-    filename,
-    df,
-    stats,
-    quality,
-    price,
-    category_name,
-):
-
-    missing = stats[
-        "missing_values_filled"
-    ]
-
-    duplicates = stats[
-        "duplicates_removed"
-    ]
-
-
-    if missing:
-
-        missing_text = (
-            f"{missing} missing values "
-            f"were handled."
-        )
-
+    if rows <= 100:
+        price = 4.0
+    elif rows <= 500:
+        price = 7.0
+    elif rows <= 1000:
+        price = 12.0
+    elif rows <= 5000:
+        price = 30.0
+    elif rows <= 10000:
+        price = 50.0
+    elif rows <= 50000:
+        price = 125.0
     else:
+        price = 200.0
 
-        missing_text = (
-            "No missing values required filling."
-        )
+    quality_factor = 0.80 + (quality / 100) * 0.40
+    price *= quality_factor
+
+    if columns >= 20:
+        price *= 1.10
+    elif columns >= 10:
+        price *= 1.05
+
+    price = max(3.0, min(price, 500.0))
+
+    return round(price, 2)
 
 
-    if duplicates:
 
-        duplicate_text = (
-            f"{duplicates} duplicate rows "
-            f"were removed."
-        )
+def analysis_text(filename, df, stats, quality, price, category_name):
 
-    else:
+    missing = stats["missing_values_filled"]
 
-        duplicate_text = (
-            "No duplicate rows were found."
-        )
+    duplicates = stats["duplicates_removed"]
 
+    missing_text = f"{missing} missing values were handled." if missing else "No missing values required filling."
+
+    duplicate_text = f"{duplicates} duplicate rows were removed." if duplicates else "No duplicate rows were found."
 
     return (
-        f"The dataset '{filename}' was analyzed "
-        f"successfully. After cleaning, it contains "
-        f"{len(df)} rows and {len(df.columns)} columns. "
-        f"{missing_text} {duplicate_text} "
-        f"The estimated quality score is "
-        f"{quality}/100. "
-        f"The dataset is classified under "
-        f"{category_name}. "
-        f"The AI recommended marketplace price "
-        f"is ${price:.2f}, based on dataset size, "
-        f"structure and estimated quality."
+
+        f"The dataset '{filename}' was analyzed successfully. After cleaning, it contains "
+
+        f"{len(df)} rows and {len(df.columns)} columns. {missing_text} {duplicate_text} "
+
+        f"The estimated quality score is {quality}/100. The dataset is classified under "
+
+        f"{category_name}. The AI recommended marketplace price is ${price:.2f}, based on "
+
+        f"dataset size, structure and estimated quality."
+
     )
 
 
+
 # ============================================================
+
 # DUPLICATE CHECK
+
 # ============================================================
 
-def duplicate_exists(
-    f_hash,
-    d_hash,
-):
-
-    for item in datasets.values():
-
-        if (
-            item["file_hash"]
-            == f_hash
-        ):
-
-            return item
 
 
-        if (
-            item["dataset_hash"]
-            == d_hash
-        ):
+def find_duplicate(f_hash, d_hash):
 
-            return item
+    conn = db()
 
+    row = conn.execute(
 
-    for item in pending_datasets.values():
+        "SELECT * FROM datasets WHERE file_hash=? OR dataset_hash=? LIMIT 1",
 
-        if (
-            item["file_hash"]
-            == f_hash
-        ):
+        (f_hash, d_hash),
 
-            return item
+    ).fetchone()
 
+    conn.close()
 
-        if (
-            item["dataset_hash"]
-            == d_hash
-        ):
+    return row
 
-            return item
-
-
-    return None
 
 
 # ============================================================
+
 # ANALYZE DATASET
+
 # ============================================================
+
+
 
 @app.post("/analyze-dataset")
-async def analyze_dataset(
-    file: UploadFile = File(...),
-    user=Depends(current_user),
-):
 
-    require_role(
-        user,
-        "seller",
-    )
+async def analyze_dataset(file: UploadFile = File(...), user=Depends(current_user)):
 
+    require_role(user, "seller")
 
-    filename = safe_filename(
-        file.filename
-    )
-
+    filename = safe_filename(file.filename)
 
     content = await file.read()
 
-
     if not content:
 
-        raise HTTPException(
-            status_code=400,
-            detail="File is empty.",
-        )
+        raise HTTPException(status_code=400, detail="File is empty.")
 
 
-    f_hash = file_hash(
-        content
-    )
 
+    f_hash = file_hash(content)
 
-    df = read_dataframe(
-        filename,
-        content,
-    )
+    df = read_dataframe(filename, content)
 
+    d_hash = dataset_hash(df)
 
-    d_hash = dataset_hash(
-        df
-    )
+    duplicate = find_duplicate(f_hash, d_hash)
 
-
-    duplicate = duplicate_exists(
-        f_hash,
-        d_hash,
-    )
 
 
     if duplicate:
 
-        raise HTTPException(
-            status_code=409,
-            detail=(
-                "This dataset or an equivalent "
-                "normalized dataset already exists."
-            ),
-        )
+        # Allow the same seller to re-analyze its own pending dataset, replacing the old pending record.
+
+        if duplicate["seller_id"] == user["id"] and duplicate["status"] == "pending":
+
+            old = dict(duplicate)
+
+            for p in (old.get("original_path"), old.get("cleaned_path")):
+
+                if p and Path(p).exists():
+
+                    try:
+
+                        Path(p).unlink()
+
+                    except Exception:
+
+                        pass
+
+            conn = db()
+
+            conn.execute("DELETE FROM datasets WHERE id=?", (old["id"],))
+
+            conn.commit()
+
+            conn.close()
+
+        else:
+
+            status_text = "already published in the marketplace" if duplicate["status"] == "published" else "already been submitted"
+
+            raise HTTPException(
+
+                status_code=409,
+
+                detail=f"This dataset or an equivalent normalized dataset has {status_text}."
+
+            )
 
 
-    cleaned, stats = clean_dataset(
-        df
-    )
 
+    cleaned, stats = clean_dataset(df)
 
     q = quality_score(
         cleaned,
-        stats,
+        stats
     )
-
 
     cat = category(
         filename,
-        cleaned.columns,
+        cleaned.columns
     )
-
 
     price = predicted_price(
         cleaned,
         q,
-        cat,
+        cat
     )
-
 
     analysis = analysis_text(
         filename,
@@ -1463,1027 +1195,662 @@ async def analyze_dataset(
         stats,
         q,
         price,
-        cat,
+        cat
     )
 
 
-    dataset_id = new_id(
-        "dataset"
+
+    dataset_id = new_id("dataset")
+
+    original_path = ORIGINAL_DIR / f"{dataset_id}_{filename}"
+
+    original_path.write_bytes(content)
+
+    cleaned_filename = f"{Path(filename).stem}_cleaned_{dataset_id}.csv"
+
+    cleaned_path = CLEANED_DIR / cleaned_filename
+
+    cleaned.to_csv(cleaned_path, index=False)
+
+
+
+    created_at = now()
+
+    conn = db()
+
+    conn.execute(
+
+        """
+
+        INSERT INTO datasets(
+
+            id,seller_id,seller_name,seller_email,name,category,rows_count,columns_count,
+
+            quality_score,predicted_price,seller_price,analysis,cleaning_stats,file_hash,dataset_hash,
+
+            original_path,cleaned_path,cleaned_filename,status,created_at,published_at
+
+        ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+
+        """,
+
+        (
+
+            dataset_id, user["id"], user["name"], user["email"], filename, cat,
+
+            len(cleaned), len(cleaned.columns), q, price, None, analysis, json.dumps(stats),
+
+            f_hash, d_hash, str(original_path), str(cleaned_path), cleaned_filename,
+
+            "pending", created_at, None,
+
+        ),
+
     )
 
+    conn.commit()
 
-    original_path = (
-        ORIGINAL_DIR
-        /
-        f"{dataset_id}_{filename}"
-    )
+    conn.close()
 
 
-    original_path.write_bytes(
-        content
-    )
 
-
-    cleaned_filename = (
-        f"{Path(filename).stem}"
-        f"_cleaned_{dataset_id}.csv"
-    )
-
-
-    cleaned_path = (
-        CLEANED_DIR
-        /
-        cleaned_filename
-    )
-
-
-    cleaned.to_csv(
-        cleaned_path,
-        index=False,
-    )
-
-
-    item = {
-
-        "id":
-            dataset_id,
-
-        "seller_id":
-            user["id"],
-
-        "seller_name":
-            user["name"],
-
-        "seller_email":
-            user["email"],
-
-        "name":
-            filename,
-
-        "category":
-            cat,
-
-        "rows":
-            len(cleaned),
-
-        "columns":
-            len(cleaned.columns),
-
-        "quality_score":
-            q,
-
-        "predicted_price":
-            price,
-
-        "analysis":
-            analysis,
-
-        "cleaning_stats":
-            stats,
-
-        "file_hash":
-            f_hash,
-
-        "dataset_hash":
-            d_hash,
-
-        "original_path":
-            str(original_path),
-
-        "cleaned_path":
-            str(cleaned_path),
-
-        "cleaned_filename":
-            cleaned_filename,
-
-        "status":
-            "pending",
-
-        "created_at":
-            now(),
-
-    }
-
-
-    pending_datasets[
-        dataset_id
-    ] = item
-
-
-    preview = json.loads(
-        cleaned
-        .head(10)
-        .to_json(
-            orient="records",
-            date_format="iso",
-        )
-    )
-
+    preview = json.loads(cleaned.head(10).to_json(orient="records", date_format="iso"))
 
     return {
 
-        "message":
-            "Dataset analyzed successfully.",
+        "success": True,
+
+        "message": "Dataset analyzed successfully.",
 
         "dataset": {
 
-            "id":
-                dataset_id,
+            "id": dataset_id,
 
-            "name":
-                filename,
+            "name": filename,
 
-            "category":
-                cat,
+            "category": cat,
 
-            "rows":
-                len(cleaned),
+            "rows": len(cleaned),
 
-            "columns":
-                len(cleaned.columns),
+            "columns": len(cleaned.columns),
 
-            "quality_score":
-                q,
+            "quality_score": q,
 
-            "predicted_price":
-                price,
+            "predicted_price": price,
 
-            "price":
-                price,
+            "price": price,
 
-            "analysis":
-                analysis,
+            "analysis": analysis,
 
-            "cleaning_stats":
-                stats,
+            "cleaning_stats": stats,
 
-            "preview":
-                preview,
+            "preview": preview,
 
-            "status":
-                "pending",
+            "status": "pending",
 
-            "seller":
-                user["name"],
+            "seller": user["name"],
 
         },
 
     }
 
 
+
 # ============================================================
+
 # PENDING DATASET
+
 # ============================================================
 
-@app.get(
-    "/pending-dataset/{dataset_id}"
-)
-def pending_dataset(
-    dataset_id: str,
-    user=Depends(current_user),
-):
-
-    require_role(
-        user,
-        "seller",
-    )
 
 
-    item = pending_datasets.get(
-        dataset_id
-    )
+@app.get("/pending-dataset/{dataset_id}")
 
+def pending_dataset(dataset_id: str, user=Depends(current_user)):
 
-    if not item:
+    require_role(user, "seller")
 
-        raise HTTPException(
-            status_code=404,
-            detail="Pending dataset not found.",
-        )
+    conn = db()
 
+    row = conn.execute("SELECT * FROM datasets WHERE id=? AND status='pending'", (dataset_id,)).fetchone()
 
-    if item["seller_id"] != user["id"]:
+    conn.close()
 
-        raise HTTPException(
-            status_code=403,
-            detail="You do not own this dataset.",
-        )
+    if not row:
 
+        raise HTTPException(status_code=404, detail="Pending dataset not found.")
 
-    df = pd.read_csv(
-        item["cleaned_path"]
-    )
+    if row["seller_id"] != user["id"]:
 
+        raise HTTPException(status_code=403, detail="You do not own this dataset.")
 
-    return {
+    item = dataset_from_row(row)
 
-        "dataset": {
+    path = Path(item["cleaned_path"])
 
-            "id":
-                item["id"],
+    if not path.exists():
 
-            "name":
-                item["name"],
+        raise HTTPException(status_code=404, detail="Cleaned file not found.")
 
-            "category":
-                item["category"],
+    df = pd.read_csv(path)
 
-            "rows":
-                item["rows"],
+    public = public_dataset(item)
 
-            "columns":
-                item["columns"],
+    public["preview"] = json.loads(df.head(10).to_json(orient="records"))
 
-            "quality_score":
-                item["quality_score"],
+    return {"dataset": public}
 
-            "predicted_price":
-                item["predicted_price"],
-
-            "price":
-                item["predicted_price"],
-
-            "analysis":
-                item["analysis"],
-
-            "cleaning_stats":
-                item["cleaning_stats"],
-
-            "preview":
-                json.loads(
-                    df.head(10)
-                    .to_json(
-                        orient="records"
-                    )
-                ),
-
-            "status":
-                "pending",
-
-        }
-
-    }
 
 
 # ============================================================
+
 # PUBLISH
+
 # ============================================================
 
-@app.post(
-    "/publish-dataset/{dataset_id}"
-)
+
+
+@app.post("/publish-dataset/{dataset_id}")
 def publish(
     dataset_id: str,
-    user=Depends(current_user),
+    payload: PublishRequest,
+    user=Depends(current_user)
 ):
+    seller_price = payload.seller_price
+    require_role(user, "seller")
 
-    require_role(
-        user,
-        "seller",
-    )
+    conn = db()
 
+    row = conn.execute(
+        "SELECT * FROM datasets WHERE id=?",
+        (dataset_id,)
+    ).fetchone()
 
-    item = pending_datasets.get(
-        dataset_id
-    )
-
-
-    if not item:
-
+    if not row:
+        conn.close()
         raise HTTPException(
             status_code=404,
-            detail="Pending dataset not found.",
+            detail="Pending dataset not found."
         )
 
-
-    if item["seller_id"] != user["id"]:
-
+    if row["seller_id"] != user["id"]:
+        conn.close()
         raise HTTPException(
             status_code=403,
-            detail="You do not own this dataset.",
+            detail="You do not own this dataset."
         )
 
+    if row["status"] == "published":
+        conn.close()
+        return {
+            "message": "Dataset already published.",
+            "dataset": public_dataset(row)
+        }
 
-    item["status"] = "published"
+    analysis_value = row["analysis"]
+    cleaning_value = row["cleaning_stats"]
 
-    item["published_at"] = now()
+    analyzed = bool(
+        analysis_value
+        and str(analysis_value).strip() not in ("{}", "null", "None")
+        and cleaning_value
+        and str(cleaning_value).strip() not in ("{}", "null", "None")
+    )
 
+    if not analyzed:
+        conn.close()
+        raise HTTPException(
+            status_code=400,
+            detail="Analyze First. Please analyze the dataset before publishing."
+        )
 
-    datasets[
-        dataset_id
-    ] = item
+    if seller_price < 3 or seller_price > 500:
+        conn.close()
+        raise HTTPException(
+            status_code=400,
+            detail="Price must be between $3 and $500."
+        )
 
+    published_at = now()
 
-    del pending_datasets[
-        dataset_id
-    ]
+    conn.execute(
+        """
+        UPDATE datasets
+        SET status='published',
+            seller_price=?,
+            published_at=?
+        WHERE id=?
+        """,
+        (seller_price, published_at, dataset_id)
+    )
 
+    conn.commit()
+
+    updated = conn.execute(
+        "SELECT * FROM datasets WHERE id=?",
+        (dataset_id,)
+    ).fetchone()
+
+    conn.close()
 
     return {
-
-        "message":
-            "Dataset published successfully.",
-
-        "dataset":
-            public_dataset(item),
-
+        "message": "Dataset published successfully.",
+        "dataset": public_dataset(updated)
     }
-
-
-# ============================================================
-# PUBLIC DATASET
-# ============================================================
-
-def public_dataset(item):
-
-    return {
-
-        "id":
-            item["id"],
-
-        "name":
-            item["name"],
-
-        "category":
-            item["category"],
-
-        "rows":
-            item["rows"],
-
-        "columns":
-            item["columns"],
-
-        "quality_score":
-            item["quality_score"],
-
-        "predicted_price":
-            item["predicted_price"],
-
-        "price":
-            item["predicted_price"],
-
-        "analysis":
-            item["analysis"],
-
-        "cleaning_stats":
-            item["cleaning_stats"],
-
-        "status":
-            item["status"],
-
-        "seller":
-            item["seller_name"],
-
-        "seller_id":
-            item["seller_id"],
-
-        "created_at":
-            item["created_at"],
-
-        "published_at":
-            item.get(
-                "published_at"
-            ),
-
-    }
-
+# MARKETPLACE: SEARCH REQUIRED
 
 # ============================================================
-# MARKETPLACE
-# ============================================================
+
+
 
 @app.get("/datasets")
-def marketplace():
 
-    result = [
-        public_dataset(item)
-        for item in datasets.values()
-    ]
+def marketplace(search: str = "", user=Depends(current_user)):
 
+    require_role(user, "buyer")
 
-    result.sort(
-        key=lambda item:
-        item.get(
-            "published_at",
-            "",
-        ),
-        reverse=True,
-    )
+    search = search.strip().lower()
+
+    like = f"%{search}%"
 
 
-    return {
-        "datasets": result
-    }
+
+    like = f"%{search}%"
+
+    conn = db()
+
+    rows = conn.execute(
+
+        """
+
+        SELECT * FROM datasets
+
+        WHERE status='published'
+
+          AND (LOWER(name) LIKE ? OR LOWER(category) LIKE ?)
+
+        ORDER BY COALESCE(published_at, created_at) DESC
+
+        """,
+
+        (like, like),
+
+    ).fetchall()
+
+    conn.close()
+
+    return {"success": True, "datasets": [public_dataset(row) for row in rows]}
+
 
 
 # ============================================================
+
 # SELLER DATASETS
+
 # ============================================================
+
+
 
 @app.get("/seller/datasets")
-def seller_datasets(
-    user=Depends(current_user),
-):
 
-    require_role(
-        user,
-        "seller",
-    )
+def seller_datasets(user=Depends(current_user)):
 
+    require_role(user, "seller")
 
-    result = []
+    conn = db()
 
+    rows = conn.execute(
 
-    for item in datasets.values():
+        "SELECT * FROM datasets WHERE seller_id=? ORDER BY created_at DESC", (user["id"],)
 
-        if (
-            item["seller_id"]
-            ==
-            user["id"]
-        ):
+    ).fetchall()
 
-            result.append(
-                public_dataset(item)
-            )
+    conn.close()
 
+    return {"datasets": [public_dataset(row) for row in rows]}
 
-    for item in pending_datasets.values():
-
-        if (
-            item["seller_id"]
-            ==
-            user["id"]
-        ):
-
-            result.append(
-                public_dataset(item)
-            )
-
-
-    result.sort(
-        key=lambda item:
-        item.get(
-            "created_at",
-            "",
-        ),
-        reverse=True,
-    )
-
-
-    return {
-        "datasets": result
-    }
 
 
 # ============================================================
+
 # DATASET DETAILS
+
 # ============================================================
 
-@app.get(
-    "/dataset/{dataset_id}"
-)
-def dataset_details(
-    dataset_id: str,
-):
-
-    item = datasets.get(
-        dataset_id
-    )
 
 
-    if not item:
+@app.get("/dataset/{dataset_id}")
 
-        raise HTTPException(
-            status_code=404,
-            detail="Dataset not found.",
-        )
+def dataset_details(dataset_id: str):
 
+    conn = db()
 
-    return {
-        "dataset":
-            public_dataset(item)
-    }
+    row = conn.execute("SELECT * FROM datasets WHERE id=? AND status='published'", (dataset_id,)).fetchone()
+
+    conn.close()
+
+    if not row:
+
+        raise HTTPException(status_code=404, detail="Dataset not found.")
+
+    return {"dataset": public_dataset(row)}
+
 
 
 # ============================================================
+
 # DOWNLOAD
+
 # ============================================================
 
-@app.get(
-    "/download-cleaned/{dataset_id}"
-)
-def download(
-    dataset_id: str,
-    user=Depends(current_user),
-):
-
-    item = datasets.get(
-        dataset_id
-    )
 
 
-    if not item:
+@app.get("/download-cleaned/{dataset_id}")
 
-        raise HTTPException(
-            status_code=404,
-            detail="Dataset not found.",
-        )
+def download(dataset_id: str, user=Depends(current_user)):
 
+    conn = db()
 
-    allowed = False
+    row = conn.execute("SELECT * FROM datasets WHERE id=? AND status='published'", (dataset_id,)).fetchone()
 
+    if not row:
 
-    # Seller owner
+        conn.close()
 
-    if (
-        user["role"] == "seller"
-        and
-        item["seller_id"]
-        ==
-        user["id"]
-    ):
-
-        allowed = True
+        raise HTTPException(status_code=404, detail="Dataset not found.")
 
 
-    # Buyer purchase
+
+    allowed = row["seller_id"] == user["id"] and user["role"] == "seller"
 
     if user["role"] == "buyer":
 
-        for purchase in purchases.values():
+        paid = conn.execute(
 
-            if (
-                purchase["buyer_id"]
-                ==
-                user["id"]
-                and
-                purchase["dataset_id"]
-                ==
-                dataset_id
-                and
-                purchase["status"]
-                ==
-                "paid"
-            ):
+            "SELECT 1 FROM purchases WHERE buyer_id=? AND dataset_id=? AND status='paid' LIMIT 1",
 
-                allowed = True
+            (user["id"], dataset_id),
 
-                break
+        ).fetchone()
+
+        allowed = paid is not None
+
+    conn.close()
+
 
 
     if not allowed:
 
-        raise HTTPException(
-            status_code=403,
-            detail=(
-                "You must purchase this dataset "
-                "before downloading it."
-            ),
-        )
+        raise HTTPException(status_code=403, detail="You must purchase this dataset before downloading it.")
 
 
-    path = Path(
-        item["cleaned_path"]
-    )
 
+    path = Path(row["cleaned_path"])
 
     if not path.exists():
 
-        raise HTTPException(
-            status_code=404,
-            detail="Cleaned file not found.",
-        )
+        raise HTTPException(status_code=404, detail="Cleaned file not found.")
 
+    return FileResponse(path=path, filename=row["cleaned_filename"], media_type="text/csv")
 
-    return FileResponse(
-        path=path,
-        filename=item[
-            "cleaned_filename"
-        ],
-        media_type="text/csv",
-    )
 
 
 # ============================================================
+
 # PURCHASE
+
 # ============================================================
+
+
 
 @app.post("/purchase")
-def purchase(
-    request: PurchaseRequest,
-    user=Depends(current_user),
-):
 
-    require_role(
-        user,
-        "buyer",
-    )
+def purchase(request: PurchaseRequest, user=Depends(current_user)):
 
+    require_role(user, "buyer")
 
-    item = datasets.get(
-        request.dataset_id
-    )
+    conn = db()
 
+    item = conn.execute("SELECT * FROM datasets WHERE id=? AND status='published'", (request.dataset_id,)).fetchone()
 
     if not item:
 
-        raise HTTPException(
-            status_code=404,
-            detail="Dataset not found.",
-        )
+        conn.close()
+
+        raise HTTPException(status_code=404, detail="Dataset not found.")
+
+    if item["seller_id"] == user["id"]:
+
+        conn.close()
+
+        raise HTTPException(status_code=400, detail="You cannot buy your own dataset.")
 
 
-    if (
-        item["seller_id"]
-        ==
-        user["id"]
-    ):
 
-        raise HTTPException(
-            status_code=400,
-            detail="You cannot buy your own dataset.",
-        )
+    old = conn.execute(
 
+        "SELECT * FROM purchases WHERE buyer_id=? AND dataset_id=? AND status='paid' LIMIT 1",
 
-    # Already purchased
+        (user["id"], request.dataset_id),
 
-    for old in purchases.values():
+    ).fetchone()
 
-        if (
-            old["buyer_id"]
-            ==
-            user["id"]
-            and
-            old["dataset_id"]
-            ==
-            request.dataset_id
-            and
-            old["status"]
-            ==
-            "paid"
-        ):
+    if old:
 
-            return {
+        conn.close()
 
-                "message":
-                    "Dataset already purchased.",
-
-                "purchase":
-                    old,
-
-            }
+        return {"message": "Dataset already purchased.", "purchase": dict(old)}
 
 
-    purchase_id = new_id(
-        "purchase"
-    )
 
+    purchase_id = new_id("purchase")
 
-    purchase_data = {
+    purchased_at = now()
 
-        "id":
-            purchase_id,
+    wallet_address = request.wallet_address or user.get("wallet_address")
 
-        "dataset_id":
-            request.dataset_id,
+    conn.execute(
 
-        "dataset_name":
-            item["name"],
+        """
 
-        "buyer_id":
-            user["id"],
+        INSERT INTO purchases(
 
-        "buyer_name":
-            user["name"],
+            id,dataset_id,dataset_name,buyer_id,buyer_name,buyer_email,seller_id,seller_name,
 
-        "buyer_email":
-            user["email"],
+            price,currency,wallet_address,transaction_hash,status,purchased_at,dataset_deleted
 
-        "seller_id":
-            item["seller_id"],
+        ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)
 
-        "seller_name":
-            item["seller_name"],
+        """,
 
-        "price":
-            item["predicted_price"],
+        (
 
-        "currency":
-            "USD",
+            purchase_id, request.dataset_id, item["name"], user["id"], user["name"], user["email"],
 
-        "wallet_address":
-            request.wallet_address
-            or
-            user.get(
-                "wallet_address"
-            ),
+            item["seller_id"], item["seller_name"], item["predicted_price"], "USD",
 
-        "transaction_hash":
-            request.transaction_hash,
+            wallet_address, request.transaction_hash, "paid", purchased_at,
 
-        "status":
-            "paid",
-
-        "purchased_at":
-            now(),
-
-    }
-
-
-    purchases[
-        purchase_id
-    ] = purchase_data
-
-
-    return {
-
-        "message":
-            "Dataset purchased successfully.",
-
-        "purchase":
-            purchase_data,
-
-    }
-
-
-# ============================================================
-# BUYER PURCHASES
-# ============================================================
-
-@app.get(
-    "/buyer/purchases"
-)
-def buyer_purchases(
-    user=Depends(current_user),
-):
-
-    require_role(
-        user,
-        "buyer",
-    )
-
-
-    result = [
-
-        purchase
-
-        for purchase in purchases.values()
-
-        if purchase["buyer_id"]
-        ==
-        user["id"]
-
-    ]
-
-
-    result.sort(
-        key=lambda x:
-        x.get(
-            "purchased_at",
-            "",
         ),
-        reverse=True,
+
     )
 
+    conn.commit()
 
-    return {
-        "purchases": result
-    }
+    row = conn.execute("SELECT * FROM purchases WHERE id=?", (purchase_id,)).fetchone()
 
+    conn.close()
 
-# ============================================================
-# SELLER SALES
-# ============================================================
+    return {"message": "Dataset purchased successfully.", "purchase": dict(row)}
 
-@app.get(
-    "/seller/sales"
-)
-def seller_sales(
-    user=Depends(current_user),
-):
-
-    require_role(
-        user,
-        "seller",
-    )
-
-
-    result = [
-
-        purchase
-
-        for purchase in purchases.values()
-
-        if (
-            purchase["seller_id"]
-            ==
-            user["id"]
-            and
-            purchase["status"]
-            ==
-            "paid"
-        )
-
-    ]
-
-
-    total = sum(
-        float(
-            purchase["price"]
-        )
-        for purchase in result
-    )
-
-
-    return {
-
-        "sales":
-            result,
-
-        "sales_count":
-            len(result),
-
-        "total_sales":
-            round(
-                total,
-                2,
-            ),
-
-    }
 
 
 # ============================================================
-# DELETE FILES
+
+# BUYER PURCHASES
+
 # ============================================================
 
-def remove_files(item):
-
-    for key in [
-        "original_path",
-        "cleaned_path",
-    ]:
-
-        path_string = item.get(key)
 
 
-        if not path_string:
+@app.get("/buyer/purchases")
 
-            continue
+def buyer_purchases(user=Depends(current_user)):
 
+    require_role(user, "buyer")
 
-        try:
+    conn = db()
 
-            path = Path(
-                path_string
-            )
+    rows = conn.execute(
 
+        "SELECT * FROM purchases WHERE buyer_id=? ORDER BY purchased_at DESC", (user["id"],)
 
-            if path.exists():
+    ).fetchall()
 
-                path.unlink()
+    conn.close()
 
-        except Exception:
+    return {"purchases": [dict(row) for row in rows]}
 
-            pass
 
 
 # ============================================================
+
+# SELLER SALES / WHO PURCHASED
+
+# ============================================================
+
+
+
+@app.get("/seller/sales")
+
+def seller_sales(user=Depends(current_user)):
+
+    require_role(user, "seller")
+
+    conn = db()
+
+    rows = conn.execute(
+
+        "SELECT * FROM purchases WHERE seller_id=? AND status='paid' ORDER BY purchased_at DESC",
+
+        (user["id"],),
+
+    ).fetchall()
+
+    conn.close()
+
+    result = [dict(row) for row in rows]
+
+    total = sum(float(x["price"]) for x in result)
+
+    return {"sales": result, "sales_count": len(result), "total_sales": round(total, 2)}
+
+
+
+# ============================================================
+
 # DELETE DATASET
+
 # ============================================================
 
-@app.delete(
-    "/delete-dataset/{dataset_id}"
-)
-def delete_dataset(
-    dataset_id: str,
-    user=Depends(current_user),
-):
-
-    require_role(
-        user,
-        "seller",
-    )
 
 
-    source = "published"
+@app.delete("/delete-dataset/{dataset_id}")
+
+def delete_dataset(dataset_id: str, user=Depends(current_user)):
+
+    require_role(user, "seller")
+
+    conn = db()
+
+    row = conn.execute("SELECT * FROM datasets WHERE id=?", (dataset_id,)).fetchone()
+
+    if not row:
+
+        conn.close()
+
+        raise HTTPException(status_code=404, detail="Dataset not found.")
+
+    if row["seller_id"] != user["id"]:
+
+        conn.close()
+
+        raise HTTPException(status_code=403, detail="You do not own this dataset.")
 
 
-    item = datasets.get(
-        dataset_id
-    )
+
+    for p in (row["original_path"], row["cleaned_path"]):
+
+        if p and Path(p).exists():
+
+            try:
+
+                Path(p).unlink()
+
+            except Exception:
+
+                pass
 
 
-    if not item:
 
-        source = "pending"
+    conn.execute("UPDATE purchases SET dataset_deleted=1 WHERE dataset_id=?", (dataset_id,))
 
-        item = pending_datasets.get(
-            dataset_id
-        )
+    conn.execute("DELETE FROM datasets WHERE id=?", (dataset_id,))
 
+    conn.commit()
 
-    if not item:
+    conn.close()
 
-        raise HTTPException(
-            status_code=404,
-            detail="Dataset not found.",
-        )
+    return {"message": "Dataset deleted successfully.", "dataset_id": dataset_id}
 
-
-    if (
-        item["seller_id"]
-        !=
-        user["id"]
-    ):
-
-        raise HTTPException(
-            status_code=403,
-            detail="You do not own this dataset.",
-        )
-
-
-    remove_files(item)
-
-
-    # Keep purchase records as historical
-    # records, but mark dataset deleted.
-
-    for purchase in purchases.values():
-
-        if (
-            purchase["dataset_id"]
-            ==
-            dataset_id
-        ):
-
-            purchase[
-                "dataset_deleted"
-            ] = True
-
-
-    if source == "published":
-
-        del datasets[
-            dataset_id
-        ]
-
-    else:
-
-        del pending_datasets[
-            dataset_id
-        ]
-
-
-    return {
-
-        "message":
-            "Dataset deleted successfully.",
-
-        "dataset_id":
-            dataset_id,
-
-    }
 
 
 # ============================================================
+
 # HEALTH
+
 # ============================================================
+
+
 
 @app.get("/")
+
 def root():
 
-    return {
+    return {"name": "DataMarket API", "status": "running", "version": "4.0.0", "database": "SQLite"}
 
-        "name":
-            "DataMarket API",
 
-        "status":
-            "running",
 
-        "version":
-            "3.0.0",
-
-    }
 
 
 @app.get("/health")
+
 def health():
+
+    conn = db()
+
+    users = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+
+    published = conn.execute("SELECT COUNT(*) FROM datasets WHERE status='published'").fetchone()[0]
+
+    pending = conn.execute("SELECT COUNT(*) FROM datasets WHERE status='pending'").fetchone()[0]
+
+    purchases = conn.execute("SELECT COUNT(*) FROM purchases").fetchone()[0]
+
+    conn.close()
 
     return {
 
-        "status":
-            "ok",
+        "status": "ok",
 
-        "users":
-            len(users),
+        "users": users,
 
-        "published_datasets":
-            len(datasets),
+        "published_datasets": published,
 
-        "pending_datasets":
-            len(pending_datasets),
+        "pending_datasets": pending,
 
-        "purchases":
-            len(purchases),
+        "purchases": purchases,
+
+        "database": str(DB_PATH),
 
     }

@@ -1503,7 +1503,9 @@ body {
 
 const API =
     "http://127.0.0.1:8000";
-
+const token =
+    localStorage.getItem("authToken") ||
+localStorage.getItem("access_token");
 
 /* =========================================================
    STATE
@@ -1592,7 +1594,13 @@ async function loadDatasets() {
 
         const response =
             await fetch(
-                `${API}/datasets`
+                `${API}/datasets`,
+                {
+                    headers: {
+                        "Authorization":
+                            `Bearer ${token}`
+                    }
+                }
             );
 
 
@@ -1807,6 +1815,7 @@ function filterDatasets() {
 
                 const name =
                     String(
+                        dataset.name ||
                         dataset.dataset_name ||
                         ""
                     )
@@ -2008,16 +2017,18 @@ function createDatasetCard(
 ) {
 
     const id =
-        escapeHtml(
-            dataset.dataset_id ||
-            ""
-        );
+    escapeHtml(
+        dataset.id ||
+        dataset.dataset_id ||
+        ""
+    );
 
 
     const name =
         escapeHtml(
-            dataset.dataset_name ||
-            "Unnamed Dataset"
+        dataset.name ||
+        dataset.dataset_name ||
+        "Unnamed Dataset"
         );
 
 
@@ -2192,12 +2203,12 @@ function findDataset(id) {
     return datasets.find(
         dataset =>
             String(
+                dataset.id ||
                 dataset.dataset_id
             ) === String(id)
     );
 
 }
-
 
 /* =========================================================
    DETAILS MODAL
@@ -2225,9 +2236,9 @@ function openDetailsModal(id) {
 
 
     const name =
+        dataset.name ||
         dataset.dataset_name ||
         "Unnamed Dataset";
-
 
     const category =
         dataset.category ||
@@ -2257,10 +2268,11 @@ function openDetailsModal(id) {
 
     const price =
         Number(
-            dataset.predicted_price ||
+            dataset.seller_price ??
+            dataset.price ??
+            dataset.predicted_price ??
             0
         );
-
 
     const analysis =
         dataset.ai_analysis ||
@@ -2478,9 +2490,9 @@ function openPaymentModal(id) {
             "paymentDataset"
         )
         .textContent =
+        dataset.name ||
         dataset.dataset_name ||
-        "Dataset";
-
+        "Dataset"
 
     document
         .getElementById(

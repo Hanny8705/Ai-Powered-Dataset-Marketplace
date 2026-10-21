@@ -293,6 +293,37 @@
         <div>
           <div class="price" id="recommendedPrice">$249.00</div>
           <p class="muted">Valuation calculated based on row count, data completeness, and market demand.</p>
+          <div class="card">
+            <h2>Suggested Listing Price</h2>
+                    
+            <div class="price-container">
+              <div>
+                <div class="price" id="recommendedPrice">$249.00</div>
+                <p class="muted">Valuation calculated based on row count, data completeness, and market demand.</p>
+              
+                <!-- Seller price input: yahan add kiya hai -->
+                <div style="margin-top: 18px;">
+                  <label for="sellerPrice" style="display:block; font-weight:600; margin-bottom:8px;">
+                    Set Your Selling Price (USD)
+                  </label>
+                
+                  <input
+                    type="number"
+                    id="sellerPrice"
+                    min="3"
+                    max="500"
+                    step="0.01"
+                    placeholder="Enter your price"
+                    style="width:100%; max-width:320px; padding:12px; border:1px solid #d1d5db; border-radius:10px; font-size:16px;"
+                  >
+                
+                  <p class="muted" style="margin-top:6px;">Price must be between $3 and $500.</p>
+                </div>
+              </div>
+            
+              <button class="publish-btn" onclick="publishDataset()">Publish to Seller Dashboard</button>
+            </div>
+          </div>
         </div>
         <button class="publish-btn" onclick="publishDataset()">Publish to Seller Dashboard</button>
       </div>
@@ -302,39 +333,106 @@
 
   <script>
     // Sample Data Setup
-    const datasetData = {
-      id: "ds_" + Date.now(),
-      title: "E-Commerce Customer Behavior Dataset",
-      meta: "Analyzed on March 2026 • Format: CSV",
-      rows: "125,430",
-      cols: "18",
-      size: "42.5 MB",
-      score: "94 / 100",
-      price: "$249.00",
-      status: "Published",
-      dateAdded: new Date().toLocaleDateString()
-    };
+    // const datasetData = {
+    //   id: "ds_" + Date.now(),
+    //   title: "E-Commerce Customer Behavior Dataset",
+    //   meta: "Analyzed on March 2026 • Format: CSV",
+    //   rows: "125,430",
+    //   cols: "18",
+    //   size: "42.5 MB",
+    //   score: "94 / 100",
+    //   price: "$249.00",
+    //   status: "Published",
+    //   dateAdded: new Date().toLocaleDateString()
+    // };
 
-    function publishDataset() {
-      // Get existing datasets or initialize array
-      let datasets = JSON.parse(localStorage.getItem('seller_datasets')) || [];
-      
-      // Prevent duplicate additions
-      const existingIndex = datasets.findIndex(item => item.title === datasetData.title);
-      if (existingIndex !== -1) {
-        datasets[existingIndex] = datasetData;
-      } else {
-        datasets.push(datasetData);
-      }
+    async function publishDataset() {
+  const token =
+    localStorage.getItem("access_token") ||
+    localStorage.getItem("authToken");
 
-      // Save to localStorage
-      localStorage.setItem('seller_datasets', JSON.stringify(datasets));
+  if (!token) {
+    alert("Please login as the seller first.");
+    return;
+  }
 
-      alert("Dataset successfully published! Redirecting to your Seller Dashboard...");
-      
-      // Fixed: Now points correctly to seller.html
-      window.location.href = "seller.html";
+  // Get the real dataset saved by the upload/analysis flow
+  let dataset = null;
+
+  try {
+    const saved =
+      sessionStorage.getItem("analysisResult") ||
+      localStorage.getItem("analysisResult");
+
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      dataset = parsed.dataset || parsed;
     }
+  } catch (error) {
+    console.error("Could not read analysis dataset:", error);
+  }
+
+  if (!dataset || !dataset.id) {
+    alert(
+      "Real dataset ID not found. Open Analysis from your uploaded dataset and try again."
+    );
+    return;
+  }
+
+  const priceText = document.getElementById("sellerPrice").value.trim();
+
+if (!priceText) {
+  alert("Please enter your selling price.");
+  document.getElementById("sellerPrice").focus();
+  return;
+}
+
+const price = Number(priceText);
+
+if (!Number.isFinite(price) || price < 3 || price > 500) {
+  alert("Price must be between $3 and $500.");
+  return;
+}
+
+  
+
+  
+
+  if (!confirm(`Publish this dataset for $${price.toFixed(2)}?`)) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:8000/publish-dataset/${encodeURIComponent(dataset.id)}`,
+      {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          seller_price: price
+        })
+      }
+    );
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(
+        data.detail || `Publish failed (${response.status})`
+      );
+    }
+
+    alert("Dataset published successfully!");
+    window.location.href = "seller.html";
+
+  } catch (error) {
+    console.error("Publish error:", error);
+    alert(error.message || "Unable to publish dataset.");
+  }
+}
   </script>
 
 </body>

@@ -1504,8 +1504,8 @@ body {
 const API =
     "http://127.0.0.1:8000";
 const token =
-    localStorage.getItem("authToken") ||
-localStorage.getItem("access_token");
+    localStorage.getItem("access_token") ||
+    localStorage.getItem("authToken");
 
 /* =========================================================
    STATE
@@ -2074,10 +2074,12 @@ function createDatasetCard(
 
 
     const price =
-        Number(
-            dataset.predicted_price ||
-            0
-        );
+    Number(
+        dataset.seller_price ??
+        dataset.price ??
+        dataset.predicted_price ??
+        0
+    );
 
 
     return `
@@ -2453,9 +2455,10 @@ function buySelectedFromDetails() {
     closeDetailsModal();
 
 
-    openPaymentModal(
-        selectedDataset.dataset_id
-    );
+   openPaymentModal(
+    selectedDataset.id ||
+    selectedDataset.dataset_id
+);
 
 }
 
@@ -2501,9 +2504,11 @@ function openPaymentModal(id) {
         .textContent =
         "$" +
         Number(
-            dataset.predicted_price ||
+            dataset.seller_price ??
+            dataset.price ??
+            dataset.predicted_price ??
             0
-        ).toFixed(2);
+        ).toFixed(2)
 
 
     document
@@ -2722,153 +2727,108 @@ function updateWalletUI() {
    CONFIRM PURCHASE
 ========================================================= */
 
+
+
 async function confirmPurchase() {
-
     if (!selectedDataset) {
-
-        showToast(
-            "Please select a dataset."
-        );
-
+        showToast("Please select a dataset.");
         return;
-
     }
-
-
-    /*
-        STEP 1:
-        Connect wallet if not connected.
-    */
 
     if (!walletAddress) {
-
         await connectWallet();
+        if (!walletAddress) return;
+    }
 
-        if (!walletAddress) {
+    const token =
+        localStorage.getItem("authToken") ||
+        localStorage.getItem("access_token") ||
+        sessionStorage.getItem("authToken") ||
+        sessionStorage.getItem("access_token");
 
+    if (!token) {
+        showToast("Please log in again.");
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            "http://127.0.0.1:8000/purchase",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    dataset_id: String(
+                        selectedDataset.id ||
+                        selectedDataset.dataset_id
+                    ),
+                    wallet_address: walletAddress
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            showToast(data.detail || "Demo purchase failed.");
             return;
-
         }
 
-    }
+        // Read either supported response shape
+        const purchase = data.purchase || data;
 
+        // Clear the old browser purchase list only once,
+        // after the backend confirms a successful purchase.
+        if (
+            localStorage.getItem("oldDemoPurchasesCleared")
+            !== "done"
+        ) {
+            localStorage.removeItem("buyerPurchases");
+            localStorage.setItem(
+                "oldDemoPurchasesCleared",
+                "done"
+            );
+        }
 
-    /*
-        STEP 2:
-
-        REAL SMART-CONTRACT PAYMENT
-        WILL BE CONNECTED HERE.
-
-        Flow will become:
-
-        Buyer
-          ↓
-        MetaMask
-          ↓
-        Solidity Contract
-          ↓
-        Payment
-          ↓
-        Blockchain confirmation
-          ↓
-        Backend verification
-          ↓
-        Dataset download unlock
-    */
-
-
-    closePaymentModal();
-
-
-    showToast(
-        "Wallet connected. Smart-contract payment will be connected next."
-    );
-
-}
-
-
-/* =========================================================
-   PURCHASES
-========================================================= */
-
-function loadPurchases() {
-
-    const purchases =
-        JSON.parse(
-            localStorage.getItem(
-                "buyerPurchases"
-            ) || "[]"
+        const purchases = JSON.parse(
+            localStorage.getItem("buyerPurchases") || "[]"
         );
 
+        const coupon =
+            "DEMO-" +
+            Math.random().toString(36).slice(2, 10).toUpperCase();
 
-    const container =
-        document.getElementById(
-            "purchaseList"
+        purchases.unshift({
+            name:
+                purchase.dataset_name ||
+                selectedDataset.name ||
+                selectedDataset.dataset_name ||
+                "Dataset",
+            coupon: coupon,
+            txHash: "DEMO-NO-ONCHAIN-TX",
+            status: "DEMO — NO REAL PAYMENT",
+            purchaseId: purchase.id || purchase.purchase_id || null
+        });
+
+        localStorage.setItem(
+            "buyerPurchases",
+            JSON.stringify(purchases)
         );
 
+        closePaymentModal();
+        loadPurchases();
 
-    if (!purchases.length) {
-
-        container.innerHTML = `
-
-            <div class="purchase-empty">
-
-                No purchases yet.
-
-                <br><br>
-
-                Purchased datasets will appear
-                here after blockchain payment.
-
-            </div>
-
-        `;
-
-        return;
-
+        showToast(
+            "Demo purchase saved! No real crypto was transferred."
+        );
+    } catch (error) {
+        console.error("Purchase error:", error);
+        showToast("Purchase request failed. Check the backend terminal.");
     }
-
-
-    container.innerHTML =
-        purchases
-            .map(
-                purchase => `
-
-                    <div
-                        style="
-                            padding:15px;
-                            border-bottom:1px solid #eee;
-                        ">
-
-                        <strong>
-                            ${escapeHtml(
-                                purchase.name
-                            )}
-                        </strong>
-
-                        <div
-                            style="
-                                color:#6b7280;
-                                font-size:11px;
-                                margin-top:5px;
-                            ">
-
-                            Transaction:
-                            ${escapeHtml(
-                                purchase.txHash ||
-                                "Pending"
-                            )}
-
-                        </div>
-
-                    </div>
-
-                `
-            )
-            .join("");
-
 }
-
 
 /* =========================================================
    SCROLL TO PURCHASES
@@ -3028,13 +2988,47 @@ if (
 }
 
 
+
 /* =========================================================
    START PURCHASES
 ========================================================= */
+// Clear old purchase history only once
+if (localStorage.getItem("purchaseHistoryResetV1") !== "done") {
+    localStorage.removeItem("buyerPurchases");
+    localStorage.setItem("purchaseHistoryResetV1", "done");
+}
+
+function loadPurchases() {
+    const container = document.getElementById("purchaseList");
+    if (!container) return;
+
+    let purchases = [];
+    try {
+        purchases = JSON.parse(
+            localStorage.getItem("buyerPurchases") || "[]"
+        );
+    } catch (error) {
+        console.error("Purchase list error:", error);
+    }
+
+    if (purchases.length === 0) {
+        container.className = "purchase-empty";
+        container.textContent = "No purchases yet.";
+        return;
+    }
+
+    container.className = "";
+    container.innerHTML = purchases.map(p => `
+        <div style="padding:15px; border-bottom:1px solid #e5e7eb;">
+            <h3>${escapeHtml(p.name || "Dataset")}</h3>
+            <p><strong>Purchase Token:</strong> ${escapeHtml(p.coupon || "N/A")}</p>
+            <p><strong>Status:</strong> ${escapeHtml(p.status || "Demo")}</p>
+            <p><strong>Reference:</strong> ${escapeHtml(p.txHash || "DEMO")}</p>
+        </div>
+    `).join("");
+}
 
 loadPurchases();
-
-
 </script>
 
 </body>

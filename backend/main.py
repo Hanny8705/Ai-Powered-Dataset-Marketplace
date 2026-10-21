@@ -309,7 +309,7 @@ class PurchaseRequest(BaseModel):
 
     wallet_address: Optional[str] = None
 class PublishRequest(BaseModel):
-    seller_price: float
+    seller_price: Optional[float] = None
 
 
 # ============================================================
@@ -1120,10 +1120,14 @@ async def analyze_dataset(file: UploadFile = File(...), user=Depends(current_use
 
 
     f_hash = file_hash(content)
-
     df = read_dataframe(filename, content)
-
     d_hash = dataset_hash(df)
+
+    print("\n========== DATASET HASH ==========", flush=True)
+    print(f"File: {filename}", flush=True)
+    print(f"SHA-256 File Hash: {f_hash}", flush=True)
+    print(f"Dataset Hash: {d_hash}", flush=True)
+    print("==================================\n", flush=True)
 
     duplicate = find_duplicate(f_hash, d_hash)
 
@@ -1353,10 +1357,9 @@ def pending_dataset(dataset_id: str, user=Depends(current_user)):
 @app.post("/publish-dataset/{dataset_id}")
 def publish(
     dataset_id: str,
-    payload: PublishRequest,
+    payload: Optional[PublishRequest] = None,
     user=Depends(current_user)
 ):
-    seller_price = payload.seller_price
     require_role(user, "seller")
 
     conn = db()
@@ -1403,6 +1406,12 @@ def publish(
             status_code=400,
             detail="Analyze First. Please analyze the dataset before publishing."
         )
+
+    seller_price = (
+        payload.seller_price
+        if payload is not None and payload.seller_price is not None
+        else row["predicted_price"]
+    )
 
     if seller_price < 3 or seller_price > 500:
         conn.close()

@@ -15,8 +15,8 @@
         }
 
         body {
-            background: #f5f7fb;
-            color: #172033;
+            background: #eeedefd6;
+            color: #01050f;
         }
 
         .dashboard {
@@ -274,12 +274,12 @@
         }
 
         .view {
-            background: #f1f5f9;
+            background: #f3f2f7;
             color: #334155;
         }
 
         .delete {
-            background: #fef2f2;
+            background: #f0f3f4;
             color: #b42318;
             border: 1px solid #fecaca;
         }
@@ -347,6 +347,176 @@
                 grid-template-columns: 1fr;
             }
         }
+        
+/* ===== RIGHT SIDE: PREMIUM PURPLE DASHBOARD ===== */
+
+.main {
+    background:
+        radial-gradient(ellipse at 90% 0%, rgba(139, 92, 246, 0.13), transparent 35%),
+        linear-gradient(135deg, #f4f2ff, #f7f8fd 60%, #eef2ff) !important;
+    min-height: 100vh;
+}
+
+/* Header */
+.top h1 {
+    color: #25203f !important;
+    letter-spacing: -1px;
+}
+
+.top p {
+    color: #77738f !important;
+}
+
+/* Top statistic cards */
+.stat {
+    background: linear-gradient(145deg, #ffffff, #f9f7ff) !important;
+    border: 1px solid #e4defb !important;
+    border-radius: 18px !important;
+    box-shadow: 0 8px 25px rgba(79, 55, 145, 0.08) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 5px;
+    height: 100%;
+    background: linear-gradient(180deg, #a78bfa, #6d4ce5);
+}
+
+.stat-label {
+    color: #77738f !important;
+}
+
+.stat-value {
+    color: #292044 !important;
+    font-size: 32px;
+}
+
+/* My Datasets outer panel */
+.section {
+    background: rgba(255, 255, 255, 0.88) !important;
+    border: 1px solid #e5e0f6 !important;
+    border-radius: 19px !important;
+    box-shadow: 0 10px 32px rgba(64, 46, 112, 0.07) !important;
+    backdrop-filter: blur(8px);
+}
+
+.section-header h2 {
+    color: #292044 !important;
+}
+
+/* Individual dataset card */
+.dataset {
+    background: linear-gradient(135deg, #ffffff, #fbfaff) !important;
+    border: 1px solid #e3def4 !important;
+    border-radius: 15px !important;
+    box-shadow: 0 4px 16px rgba(64, 46, 112, 0.04);
+    transition: all 0.22s ease;
+}
+
+.dataset:hover {
+    border-color: #b8a5f4 !important;
+    box-shadow: 0 10px 26px rgba(109, 76, 229, 0.10);
+    transform: translateY(-2px);
+}
+
+.dataset-name {
+    color: #292044 !important;
+}
+
+.dataset-file {
+    color: #77738f !important;
+}
+
+/* Details inside dataset */
+.detail {
+    background: #f4f2fc !important;
+    border: 1px solid #eae6f8 !important;
+    border-radius: 11px !important;
+}
+
+.detail span {
+    color: #77738f !important;
+}
+
+.detail strong {
+    color: #30264d !important;
+}
+
+/* Refresh button */
+.refresh {
+    background: #eee9ff !important;
+    color: #6344c8 !important;
+    border: 1px solid #ded4ff !important;
+    border-radius: 10px !important;
+}
+
+.refresh:hover {
+    background: #e3d9ff !important;
+}
+
+/* Buttons */
+.download {
+    background: #eeeaff !important;
+    color: #6045c6 !important;
+    border: 1px solid #dfd6ff !important;
+}
+
+.view {
+    background: #edf2ff !important;
+    color: #36538a !important;
+    border: 1px solid #dce5fa !important;
+}
+
+.publish {
+    background: linear-gradient(120deg, #139b78, #087d65) !important;
+    color: #ffffff !important;
+}
+
+.delete {
+    background: #fff0f1 !important;
+    color: #b52d43 !important;
+    border: 1px solid #ffd4da !important;
+}
+
+/* Keep status readable */
+.status {
+    background: #e1f8ed !important;
+    color: #11734d !important;
+}
+
+.waiting {
+    background: #fff1dc !important;
+    color: #9b5a08 !important;
+}
+
+/* Avoid content spilling off screen */
+.main,
+.section,
+.dataset {
+    min-width: 0;
+}
+
+.dataset-details {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1050px) {
+    .dataset-details {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .dataset-details {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
     </style>
 </head>
 
@@ -377,13 +547,33 @@
         <main class="main">
 
             <!-- HEADER -->
-            <div class="top">
-                <div>
-                    <h1>Seller Dashboard</h1>
-                    <p>Manage your AI-analyzed datasets and marketplace listings.</p>
-                </div>
-                <a href="upload.html" class="upload-btn">+ Upload Dataset</a>
-            </div>
+            
+<div class="top">
+    <div>
+        <h1>Seller Dashboard</h1>
+        <p>Manage your AI-analyzed datasets and marketplace listings.</p>
+    </div>
+
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <a href="index.html"
+           class="upload-btn"
+           style="background:#475569;">
+            🏠 Home
+        </a>
+
+        <a href="upload.html" class="upload-btn">
+            + Upload Dataset
+        </a>
+
+        <button type="button"
+                class="upload-btn"
+                style="border:none; cursor:pointer; background:#dc2626;"
+                onclick="sellerLogout()">
+            Logout
+        </button>
+    </div>
+</div>
+
 
             <!-- STATS -->
             <div class="stats">
@@ -489,16 +679,22 @@
                 let totalValue = 0;
 
                 datasets.forEach(dataset => {
-                    const id = dataset.dataset_id || dataset.id;
-                    const isPublishedLocally = getLocalPublishedStatus(id);
+    const id = dataset.id || dataset.dataset_id;
 
-                    if (String(dataset.status).toLowerCase() === "published" || isPublishedLocally) {
-                        dataset.status = "published";
-                        publishedCount++;
-                    }
+    const isPublished =
+        String(dataset.status || "").toLowerCase() === "published";
 
-                    totalValue += Number(dataset.recommended_price ?? dataset.price ?? 0);
-                });
+    if (isPublished) {
+        publishedCount++;
+    }
+
+    totalValue += Number(
+        dataset.seller_price ??
+        dataset.price ??
+        dataset.predicted_price ??
+        0
+    );
+});
 
                 document.getElementById("totalDatasets").textContent = datasets.length;
                 document.getElementById("publishedDatasets").textContent = publishedCount;
@@ -516,11 +712,18 @@
                 }
 
                 list.innerHTML = datasets.map(dataset => {
-                    const id = escapeHtml(dataset.dataset_id || dataset.id || "");
-                    const isPublished = String(dataset.status).toLowerCase() === "published" || getLocalPublishedStatus(id);
-                    const statusClass = isPublished ? "status" : "status waiting";
-                    const statusText = isPublished ? "Published" : "Waiting for Publish";
+                    const id = escapeHtml(dataset.id || dataset.dataset_id || "");
 
+const isPublished =
+    String(dataset.status || "").toLowerCase() === "published";
+
+const statusClass = isPublished
+    ? "status"
+    : "status waiting";
+
+const statusText = isPublished
+    ? "Published"
+    : "Waiting for Publish";
                     return `
                         <div class="dataset">
                             <div class="dataset-top">
@@ -539,12 +742,12 @@
                             <div class="dataset-details">
                                 <div class="detail">
                                     <span>Original Rows</span>
-                                    <strong>${dataset.original_rows ?? 0}</strong>
+                                    <strong>${dataset.original_rows ?? dataset.rows ?? 0}</strong>
                                 </div>
 
                                 <div class="detail">
                                     <span>Cleaned Rows</span>
-                                    <strong>${dataset.cleaned_rows ?? 0}</strong>
+                                    <strong>${dataset.cleaned_rows ?? dataset.rows ?? 0}</strong>
                                 </div>
 
                                 <div class="detail">
@@ -555,10 +758,11 @@
                                 <div class="detail">
                                     <span>AI Price</span>
                                     <strong>$${Number(
-                                        dataset.predicted_price ??
-                                        dataset.recommended_price ??
-                                        dataset.price ??
-                                        0
+                                        dataset.seller_price ??
+dataset.price ??
+dataset.predicted_price ??
+dataset.recommended_price ??
+0
                                     ).toFixed(2)}</strong>
                                 </div>
                             </div>
@@ -595,108 +799,70 @@
             }
         }
 
-        async function publishDataset(id) {
         
-            const authToken =
-                localStorage.getItem("access_token") ||
-                localStorage.getItem("authToken");
-        
-            if (!authToken) {
-                alert("Please login first.");
-                return;
-            }
-        
-            if (!id) {
-                alert("Dataset ID not found.");
-                return;
-            }
-        
-            const sellerPrice =
-                prompt(
-                    "Enter your selling price (USD):",
-                    "4.00"
-                );
-        
-            if (sellerPrice === null) {
-                return;
-            }
-        
-            const price = Number(sellerPrice);
-        
-            if (!Number.isFinite(price)) {
-                alert("Please enter a valid price.");
-                return;
-            }
-        
-            if (price < 3 || price > 500) {
-                alert("Price must be between $3 and $500.");
-                return;
-            }
-        
-            const confirmed =
-                confirm(
-                    `Publish this dataset for $${price.toFixed(2)}?`
-                );
-        
-            if (!confirmed) {
-                return;
-            }
-        
-            try {
-            
-                const response =
-                    await fetch(
-                        `${API}/publish-dataset/${encodeURIComponent(id)}`,
-                        {
-                            method: "POST",
-                        
-                            headers: {
-                                "Authorization":
-                                    `Bearer ${authToken}`,
-                            
-                                "Content-Type":
-                                    "application/json"
-                            },
-                        
-                            body: JSON.stringify({
-                                seller_price: price
-                            })
-                        }
-                    );
-                    
-                const data =
-                    await response.json().catch(
-                        () => ({})
-                    );
-                    
-                if (!response.ok) {
-                    throw new Error(
-                        data.detail ||
-                        "Failed to publish dataset."
-                    );
-                }
-            
-                setLocalPublishedStatus(id);
-            
-                alert(
-                    "Dataset published successfully!"
-                );
-            
-                await loadDatasets();
-            
-            } catch (error) {
-            
-                console.error(
-                    "Publish Error:",
-                    error
-                );
-            
-                alert(
-                    error.message ||
-                    "Unable to publish dataset."
-                );
-            }
+    async function publishDataset(id) {
+        const token =
+            localStorage.getItem("access_token") ||
+            localStorage.getItem("authToken");
+
+        if (!token) {
+            alert("Please login first.");
+            return;
         }
+
+        if (!id) {
+            alert("Dataset ID not found.");
+            return;
+        }
+
+        const sellerPrice = prompt(
+            "Enter your selling price (USD):",
+            "4.00"
+        );
+
+        if (sellerPrice === null) return;
+
+        const price = Number(sellerPrice);
+
+        if (!Number.isFinite(price) || price < 3 || price > 500) {
+            alert("Price must be between $3 and $500.");
+            return;
+        }
+
+        if (!confirm(`Publish this dataset for $${price.toFixed(2)}?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `${API}/publish-dataset/${encodeURIComponent(id)}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        seller_price: price
+                    })
+                }
+            );
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(data.detail || "Failed to publish dataset.");
+            }
+
+            alert("Dataset published successfully!");
+            await loadDatasets();
+
+        } catch (error) {
+            console.error("Publish Error:", error);
+            alert(error.message || "Unable to publish dataset.");
+        }
+    }
+
         async function downloadDataset(id) {
             const token =
                 localStorage.getItem("access_token") ||
@@ -804,6 +970,20 @@
         }
 
         document.addEventListener("DOMContentLoaded", loadDatasets);
+        
+function sellerLogout() {
+    if (!confirm("Are you sure you want to logout?")) {
+        return;
+    }
+
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("authToken");
+    sessionStorage.removeItem("access_token");
+    sessionStorage.removeItem("authToken");
+
+    window.location.href = "index.html";
+}
+
     </script>
 
 </body>

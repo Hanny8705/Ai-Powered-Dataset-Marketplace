@@ -299,6 +299,240 @@
                 flex-direction: column;
             }
         }
+        
+
+/* ===== DATAMARKET: MODERN UPLOAD PAGE REDESIGN ===== */
+
+body {
+    background: linear-gradient(135deg, #f2efff 0%, #f6f7fc 52%, #eaf1ff 100%) !important;
+    color: #25213d !important;
+}
+
+/* Center and constrain the page */
+.page {
+    width: min(920px, calc(100% - 36px)) !important;
+    max-width: 920px !important;
+    margin: 28px auto 50px !important;
+}
+
+/* Compact, aligned header */
+.topbar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 20px !important;
+    flex-wrap: wrap !important;
+    padding: 22px 26px !important;
+    margin-bottom: 24px !important;
+    background: linear-gradient(120deg, #292044, #3b2d63) !important;
+    border: 1px solid #493773 !important;
+    border-radius: 16px !important;
+    box-shadow: 0 10px 28px rgba(47, 34, 91, .15) !important;
+}
+
+.brand {
+    min-width: 0;
+}
+
+.brand h1 {
+    color: #ffffff !important;
+    font-size: clamp(25px, 3vw, 32px) !important;
+    line-height: 1.25 !important;
+    margin: 0 0 6px !important;
+    letter-spacing: -.6px;
+}
+
+.brand p {
+    color: #d8d0f5 !important;
+    margin: 0 !important;
+    line-height: 1.5;
+}
+
+.back-btn {
+    flex-shrink: 0;
+    background: #514078 !important;
+    color: #ffffff !important;
+    border: 1px solid #71609b !important;
+    border-radius: 10px !important;
+    padding: 11px 16px !important;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    background: #66518f !important;
+}
+
+/* Main form */
+.card {
+    padding: 30px 32px !important;
+    margin: 0 auto !important;
+    background: #ffffff !important;
+    border: 1px solid #e4def5 !important;
+    border-radius: 18px !important;
+    box-shadow: 0 12px 34px rgba(52, 40, 98, .08) !important;
+}
+
+.card h1,
+.card h2 {
+    color: #292044 !important;
+    font-size: 23px !important;
+    margin-bottom: 5px;
+}
+
+.card h3,
+.card label {
+    color: #33294f !important;
+}
+
+.card p {
+    color: #77718f !important;
+    line-height: 1.65;
+}
+
+/* File upload zone — shorter and more polished */
+.drop-zone {
+    min-height: 185px !important;
+    padding: 26px 20px !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: linear-gradient(135deg, #f2eeff, #edf2ff) !important;
+    border: 2px dashed #a797ed !important;
+    border-radius: 14px !important;
+    transition: background .2s, border-color .2s, transform .2s;
+}
+
+.drop-zone:hover {
+    background: linear-gradient(135deg, #e9e1ff, #e4ecff) !important;
+    border-color: #765be0 !important;
+    transform: translateY(-1px);
+}
+
+.drop-zone p,
+.drop-zone span {
+    color: #645587 !important;
+}
+
+/* AI information panel */
+.ai-box {
+    padding: 16px 18px !important;
+    background: #f3efff !important;
+    border: 1px solid #e0d6ff !important;
+    border-radius: 12px !important;
+}
+
+/* Inputs */
+input,
+select,
+textarea {
+    width: 100%;
+    min-height: 46px;
+    padding: 11px 14px !important;
+    background: #fcfbff !important;
+    color: #292044 !important;
+    border: 1px solid #ded8ed !important;
+    border-radius: 10px !important;
+    font-size: 14px;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #8b73e8 !important;
+    box-shadow: 0 0 0 3px rgba(123, 94, 224, .12);
+}
+
+/* Form spacing */
+.card label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.card input,
+.card select,
+.card textarea {
+    margin-bottom: 16px;
+}
+
+/* Buttons */
+.button-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.analyze-btn {
+    min-height: 46px;
+    padding: 12px 22px !important;
+    background: linear-gradient(115deg, #7960e8, #5a43cb) !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 10px !important;
+    font-weight: 700;
+    box-shadow: 0 6px 15px rgba(95, 68, 204, .22);
+    transition: transform .2s, box-shadow .2s;
+}
+
+.analyze-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 9px 20px rgba(95, 68, 204, .28);
+}
+
+.cancel-btn {
+    min-height: 46px;
+    padding: 11px 18px !important;
+    background: #f1eff8 !important;
+    color: #51476b !important;
+    border: 1px solid #e2dced !important;
+    border-radius: 10px !important;
+}
+
+/* Mobile */
+@media (max-width: 650px) {
+    .page {
+        width: calc(100% - 24px) !important;
+        margin: 12px auto 28px !important;
+    }
+
+    .topbar {
+        padding: 18px !important;
+        gap: 14px !important;
+    }
+
+    .brand h1 {
+        font-size: 25px !important;
+    }
+
+    .card {
+        padding: 20px 17px !important;
+    }
+
+    .drop-zone {
+        min-height: 155px !important;
+    }
+
+    .button-row {
+        justify-content: stretch;
+    }
+
+    .button-row button,
+    .button-row a {
+        flex: 1 1 auto;
+    }
+}
 
     </style>
 </head>
@@ -328,7 +562,18 @@
         >
             ← Dashboard
         </a>
+<button
+    type="button"
+    id="connectWalletBtn"
+    class="back-btn"
+    style="cursor:pointer;"
+>
+    Connect MetaMask
+</button>
 
+<p id="walletStatus" style="margin-top:10px; color:#ffffff;">
+    Wallet not connected
+</p>
     </div>
 
 
@@ -909,6 +1154,32 @@ function hideError() {
         "none";
 }
 
+let connectedWallet = null;
+
+document.getElementById("connectWalletBtn").addEventListener("click", async function () {
+    try {
+        if (!window.ethereum) {
+            alert("MetaMask install karo aur browser mein enable karo.");
+            return;
+        }
+
+        const accounts = await window.ethereum.request({
+            method: "eth_requestAccounts"
+        });
+
+        connectedWallet = accounts[0];
+
+        document.getElementById("walletStatus").textContent =
+            "Connected: " + connectedWallet;
+
+        console.log("========== ETHEREUM WALLET ==========");
+        console.log("Connected wallet:", connectedWallet);
+        console.log("=====================================");
+    } catch (error) {
+        console.error("MetaMask connection failed:", error);
+        alert("Wallet connect nahi hua. MetaMask mein request approve karo.");
+    }
+});
 </script>
 
 </body>
